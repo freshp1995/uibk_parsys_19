@@ -14,6 +14,15 @@ To check the state of a running job you can use **qstat**. It has some options l
 
 The only way to stop a job that already runs is to use **qdel**.
 
+## Prepare a submission script that starts an arbitrary executable, e.g. `/bin/hostname`
+
+To run the test script: 
+
+```
+qsub job.script
+```
+
+
 ## In your opinion, what are the 5 most important parameters available when submitting a job and why? What are possible settings of these parameters, and what effect do they have?
 
 ### Queuename
@@ -30,7 +39,7 @@ With the option -m you have a number of options that set for what event a notifi
 
 ### CWD
 
-This option (-cwd) is very important if you want to control the directory from which the job is run. When omitted the **$home** directory is used and this is usually not a good idea.
+This option (-cwd) is very important if you want to control the directory from which the job is run. When omitted, the **$home** directory is used and this is usually not a good idea.
 
 ### Syntax checking
 
@@ -40,9 +49,3 @@ There is also an option to check if the syntax of the job is correct (-w v).
 ## How do you run your program in parallel? What environment setup is required? 
 
 If you don't add the option -pe, SGE just assumes the job is sequential. The -pe option has two parameters the first one is the environment and the second one is the number of slots. The cluster has three environments openmpi-Xperhost, openmpi-fillup, openmp. The most important thing to note here is that this only reserves CPU-cores but you yourself are responsible that the job actually uses them.
-
-To run the test script: 
-
-```
-qsub job.script
-```
