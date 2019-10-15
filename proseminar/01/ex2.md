@@ -10,8 +10,8 @@ Group members: **Patrick Lanzinger, Raphael Gruber**
 
 ## Create a table and figures that illustrate the measured data and study them. What effects can you observe?
 
-![Image](images/OSU_MPI_Bandwidth_Test_v5.6.2.png) 
-![Image](images/OSU_MPI_Latency_Test_v5.6.2.png) 
+![Image](images/bandwith1_default.png) 
+![Image](images/latency1_default.png) 
 
 The bandwith is linear and the latency states same until 8 size then growth linear as well
 

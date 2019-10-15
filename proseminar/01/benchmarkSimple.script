@@ -25,14 +25,3 @@ path=/scratch/c703429/osu-benchmark/libexec/osu-micro-benchmarks/mpi/pt2pt
 mpiexec -n 2 $path/osu_latency
 mpiexec -n 2 $path/osu_bw
 
-# Different cores same socket
-mpiexec --np 2 --report-bindings --map-by core --bind-to core  $path/osu_latency
-mpiexec --np 2 --report-bindings --map-by core --bind-to core   $path/osu_bw
-
-# Different sockets same node
-mpiexec --np 2 --report-bindings --map-by node --bind-to socket $path/osu_latency
-mpiexec --np 2 --report-bindings --map-by node --bind-to socket $path/osu_bw
-
-# Different nodes
-mpiexec --np 2 --report-bindings --map-by node $path/osu_latency
-mpiexec --np 2 --report-bindings --map-by node $path/osu_bw
