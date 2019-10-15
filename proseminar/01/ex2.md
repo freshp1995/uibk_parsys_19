@@ -21,8 +21,10 @@ The bandwith is linear and the latency states same until 8 size then growth line
 ### different cores of the same socket
 
 Bandwith
+
 ![Image](images/bandwith1_diff_core.png) 
 Lantency
+
 ![Image](images/latency1_diff_core.png) 
 
 ### different sockets of the same node
