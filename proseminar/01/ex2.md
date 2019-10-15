@@ -35,11 +35,23 @@ Lantency
 
 ### different sockets of the same node
 
-![Image](images/bandwith1_diff_socket.png) ![Image](images/latency1_diff_socket.png) 
+Bandwith
+
+![Image](images/bandwith1_diff_socket.png) 
+
+Lantency
+
+![Image](images/latency1_diff_socket.png) 
 
 ### different nodes
 
-![Image](images/bandwith1_diff_nodes.png) ![Image](images/latency1_diff_nodes.png) 
+Bandwith
+
+![Image](images/bandwith1_diff_nodes.png) 
+
+Lantency
+
+![Image](images/latency1_diff_nodes.png) 
 
 ## Ammend your table and figures to include these additional measurements. What effects can you observe? How can you verify rank placement without looking at performance?
 
@@ -53,33 +65,73 @@ Latency 1
 
 ![Image](images/latency1_diff_core.png) 
 
+Bandwith 2
+
 ![Image](images/bandwith2_diff_core.png) 
+
+Latency 2
+
 ![Image](images/latency2_diff_core.png) 
 
+Bandwith 3
+
 ![Image](images/bandwith3_diff_core.png) 
+
+Latency 3
+
 ![Image](images/latency3_diff_core.png) 
 
 ### different sockets of the same node
 
-![Image](images/bandwith1_diff_socket.png) 
-![Image](images/latency1_diff_socket.png) 
+Bandwith 1
 
 ![Image](images/bandwith1_diff_socket.png) 
+
+Lantency 1
+
 ![Image](images/latency1_diff_socket.png) 
 
-![Image](images/bandwith1_diff_socket.png) 
-![Image](images/latency1_diff_socket.png) 
+Bandwith 2
+
+![Image](images/bandwith2_diff_socket.png) 
+
+Lantency 2
+
+![Image](images/latency2_diff_socket.png) 
+
+Bandwith 3
+
+![Image](images/bandwith3_diff_socket.png) 
+
+Lantency 3
+
+![Image](images/latency3_diff_socket.png) 
 
 ### different nodes
 
-![Image](images/bandwith1_diff_nodes.png) 
-![Image](images/latency1_diff_nodes.png) 
+Bandwith 1
 
 ![Image](images/bandwith1_diff_nodes.png) 
+
+Lantency 1
+
 ![Image](images/latency1_diff_nodes.png) 
 
-![Image](images/bandwith1_diff_nodes.png) 
-![Image](images/latency1_diff_nodes.png) 
+Bandwith 2
+
+![Image](images/bandwith2_diff_nodes.png) 
+
+Lantency 2
+
+![Image](images/latency2_diff_nodes.png) 
+
+Bandwith 4
+
+![Image](images/bandwith3_diff_nodes.png) 
+
+Lantency 3
+
+![Image](images/latency3_diff_nodes.png) 
 
 
 ## How stable are the measurements when running the experiments multiple times?
