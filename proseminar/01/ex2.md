@@ -55,6 +55,11 @@ Lantency
 
 ## Ammend your table and figures to include these additional measurements. What effects can you observe? How can you verify rank placement without looking at performance?
 
+The latency is less in by using different sockets of the same node compare to the other two. The bandwith is higher by using different cores of the same socket. In general all growth lineraly.
+
+## How stable are the measurements when running the experiments multiple times?
+
+
 ### different cores of the same socket
 
 Bandwith 1
@@ -125,7 +130,7 @@ Lantency 2
 
 ![Image](images/latency2_diff_nodes.png) 
 
-Bandwith 4
+Bandwith 3
 
 ![Image](images/bandwith3_diff_nodes.png) 
 
@@ -133,5 +138,4 @@ Lantency 3
 
 ![Image](images/latency3_diff_nodes.png) 
 
-
-## How stable are the measurements when running the experiments multiple times?
+We get similar results. The latency sometimes varies slightly in low sizes, but after that it always grows linearly
