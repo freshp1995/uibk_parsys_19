@@ -18,12 +18,55 @@ The bandwith is linear and the latency states same until 8 size then growth line
 
 ## Modify your experiment such that the 2 MPI ranks are placed on
 
-### different cores of the same socket,
+### different cores of the same socket
 
-### different sockets of the same node, and
-### different nodes.
+![Image](images/bandwith1_diff_core.png) 
+![Image](images/latency1_diff_core.png) 
+
+### different sockets of the same node
+
+![Image](images/bandwith1_diff_socket.png) 
+![Image](images/latency1_diff_socket.png) 
+
+### different nodes
+
+![Image](images/bandwith1_diff_nodes.png) 
+![Image](images/latency1_diff_nodes.png) 
 
 ## Ammend your table and figures to include these additional measurements. What effects can you observe? How can you verify rank placement without looking at performance?
+
+### different cores of the same socket
+
+![Image](images/bandwith1_diff_core.png) 
+![Image](images/latency1_diff_core.png) 
+
+![Image](images/bandwith2_diff_core.png) 
+![Image](images/latency2_diff_core.png) 
+
+![Image](images/bandwith3_diff_core.png) 
+![Image](images/latency3_diff_core.png) 
+
+### different sockets of the same node
+
+![Image](images/bandwith1_diff_socket.png) 
+![Image](images/latency1_diff_socket.png) 
+
+![Image](images/bandwith1_diff_socket.png) 
+![Image](images/latency1_diff_socket.png) 
+
+![Image](images/bandwith1_diff_socket.png) 
+![Image](images/latency1_diff_socket.png) 
+
+### different nodes
+
+![Image](images/bandwith1_diff_nodes.png) 
+![Image](images/latency1_diff_nodes.png) 
+
+![Image](images/bandwith1_diff_nodes.png) 
+![Image](images/latency1_diff_nodes.png) 
+
+![Image](images/bandwith1_diff_nodes.png) 
+![Image](images/latency1_diff_nodes.png) 
 
 
 ## How stable are the measurements when running the experiments multiple times?
