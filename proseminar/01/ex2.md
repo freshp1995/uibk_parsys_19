@@ -13,7 +13,8 @@ Group members: **Patrick Lanzinger, Raphael Gruber**
 ![Image](images/OSU_MPI_Bandwidth_Test_v5.6.2.png) 
 ![Image](images/OSU_MPI_Latency_Test_v5.6.2.png) 
 
-We can see that in both plots that the test results convert to a certain value
+The bandwith is linear and the latency states same until 8 size then growth linear as well
+
 
 ## Modify your experiment such that the 2 MPI ranks are placed on
 
