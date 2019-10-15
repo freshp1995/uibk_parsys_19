@@ -10,7 +10,12 @@ Group members: **Patrick Lanzinger, Raphael Gruber**
 
 ## Create a table and figures that illustrate the measured data and study them. What effects can you observe?
 
+Bandwith
+
 ![Image](images/bandwith1_default.png) 
+
+Lantency
+
 ![Image](images/latency1_default.png) 
 
 The bandwith is linear and the latency states same until 8 size then growth linear as well
@@ -23,25 +28,29 @@ The bandwith is linear and the latency states same until 8 size then growth line
 Bandwith
 
 ![Image](images/bandwith1_diff_core.png) 
+
 Lantency
 
 ![Image](images/latency1_diff_core.png) 
 
 ### different sockets of the same node
 
-![Image](images/bandwith1_diff_socket.png) 
-![Image](images/latency1_diff_socket.png) 
+![Image](images/bandwith1_diff_socket.png) ![Image](images/latency1_diff_socket.png) 
 
 ### different nodes
 
-![Image](images/bandwith1_diff_nodes.png) 
-![Image](images/latency1_diff_nodes.png) 
+![Image](images/bandwith1_diff_nodes.png) ![Image](images/latency1_diff_nodes.png) 
 
 ## Ammend your table and figures to include these additional measurements. What effects can you observe? How can you verify rank placement without looking at performance?
 
 ### different cores of the same socket
 
+Bandwith 1
+
 ![Image](images/bandwith1_diff_core.png) 
+
+Latency 1
+
 ![Image](images/latency1_diff_core.png) 
 
 ![Image](images/bandwith2_diff_core.png) 
