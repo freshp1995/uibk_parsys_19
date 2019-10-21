@@ -137,21 +137,22 @@ int main(int argc, char **argv) {
   }
 
   // ---------- check ----------
-
-  printf("Final:\t\t");
-  printTemperature(A, N);
-  printf("\n");
-
   int success = 1;
-  for (long long i = 0; i < N; i++) {
-    value_t temp = A[i];
-    if (273 <= temp && temp <= 273 + 60)
-      continue;
-    success = 0;
-    break;
-  }
+  if (rank == 0) {
+    printf("Final:\t\t");
+    printTemperature(A, N);
+    printf("\n");
 
-  printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+    for (long long i = 0; i < N; i++) {
+      value_t temp = A[i];
+      if (273 <= temp && temp <= 273 + 60)
+        continue;
+      success = 0;
+      break;
+    }
+
+    printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+  }
 
   // ---------- cleanup ----------
 
