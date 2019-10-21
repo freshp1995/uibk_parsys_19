@@ -11,13 +11,12 @@
 #define SEED 35791246
 
 int main(int argc, char **argv) {
-	if (argc < 3) {
-		printf("no number of samples and rank size given (program parameter)");
+	if (argc < 2) {
+		printf("no number of samples (program parameter)");
 		return EXIT_FAILURE;
 	}
 
-	int rank = atoi(argv[2]);
-	int numProcs;
+	int numProcs, rank;
 
 	/* initialize mpi*/
 	MPI_Init(&argc, &argv);
