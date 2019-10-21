@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
+  printf("Number of prozesses: %d\n", numProcs);
+
   // ---------- compute ----------
 
   // create a second buffer for the computation
@@ -137,21 +139,22 @@ int main(int argc, char **argv) {
   }
 
   // ---------- check ----------
-
-  printf("Final:\t\t");
-  printTemperature(A, N);
-  printf("\n");
-
   int success = 1;
-  for (long long i = 0; i < N; i++) {
-    value_t temp = A[i];
-    if (273 <= temp && temp <= 273 + 60)
-      continue;
-    success = 0;
-    break;
-  }
+  if (rank == 0) {
+    printf("Final:\t\t");
+    printTemperature(A, N);
+    printf("\n");
 
-  printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+    for (long long i = 0; i < N; i++) {
+      value_t temp = A[i];
+      if (273 <= temp && temp <= 273 + 60)
+        continue;
+      success = 0;
+      break;
+    }
+
+    printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+  }
 
   // ---------- cleanup ----------
 
