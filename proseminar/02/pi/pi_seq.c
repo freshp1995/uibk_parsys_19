@@ -17,14 +17,14 @@ int main(int argc, char *argv[]) {
 
 	int niter = atoi(argv[1]);
 	double x, y;
-	int i, count = 0; /* # of points in the 1st quadrant of unit circle */
+	long count = 0; /* # of points in the 1st quadrant of unit circle */
 	double z;
 	double pi;
 
 	/* initialize random numbers */
 	srand(SEED);
 	count = 0;
-	for (i = 0; i < niter; i++) {
+	for (int i = 0; i < niter; i++) {
 		x = (double) rand() / RAND_MAX;
 		y = (double) rand() / RAND_MAX;
 		z = x * x + y * y;
@@ -32,7 +32,8 @@ int main(int argc, char *argv[]) {
 			count++;
 	}
 	pi = (double) count / niter * 4;
-	printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
+	//printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
+	printf("%d; %g\n", niter, pi);
 
 	return EXIT_SUCCESS;
 }

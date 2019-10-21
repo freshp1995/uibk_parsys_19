@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 
 	int niter = atoi(argv[1]);
 	double x, y;
-	int i, count = 0; /* # of points in the 1st quadrant of unit circle */
+	long count = 0; /* # of points in the 1st quadrant of unit circle */
 	double z;
 	double pi = 0;
 
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 	int from = rank * niter / numProcs;
 	int to = (rank + 1) * niter / numProcs;
 
-	for (i = from; i < to; i++) {
+	for (int i = from; i < to; i++) {
 		x = (double) rand() / RAND_MAX;
 		y = (double) rand() / RAND_MAX;
 		z = x * x + y * y;
@@ -48,16 +48,16 @@ int main(int argc, char **argv) {
 			count++;
 	}
 
-	int allCount = 0;
+	long allCount = 0;
 
 	/* sum up all counts */
-	MPI_Reduce(&count, &allCount, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&count, &allCount, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	if (rank == 0) {
 		pi = (double) allCount / niter * 4;
 
-		printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
-
+		//printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
+		printf("%d; %g\n", niter, pi);
 
 	}
 
