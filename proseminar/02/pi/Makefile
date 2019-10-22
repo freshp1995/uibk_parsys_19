@@ -9,7 +9,7 @@ all: pi_mpi
 pi_seq: pi_seq.c
 	@$(CC) $(CC_FLAGS) $< -o pi_seq
 
-pi_mpi: pi_seq.c
+pi_mpi: pi_mpi.c
 	@$(MPI) $(CC_FLAGS) $< -o pi_mpi
 
 .PHONEY: clean

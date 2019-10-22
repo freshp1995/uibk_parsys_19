@@ -1,0 +1,82 @@
+  Loading openmpi/4.0.1 for compiler gnu-4.8.5
+10; 3.6; 0
+
+real	0m4.981s
+user	0m0.135s
+sys	0m0.300s
+100; 3.12; 0
+
+real	0m4.627s
+user	0m0.137s
+sys	0m0.284s
+1000; 3.152; 0
+
+real	0m4.653s
+user	0m0.151s
+sys	0m0.285s
+10000; 3.1476; 0
+
+real	0m4.123s
+user	0m0.098s
+sys	0m0.282s
+100000; 3.1384; 0
+
+real	0m4.197s
+user	0m0.110s
+sys	0m0.281s
+1000000; 3.142; 0
+
+real	0m4.269s
+user	0m0.129s
+sys	0m0.305s
+10000000; 3.14182; 0
+
+real	0m4.698s
+user	0m0.229s
+sys	0m0.285s
+100000000; 3.14157; 0
+
+real	1m5.888s
+user	0m20.011s
+sys	0m0.279s
+
+10; 2.8
+
+real	0m0.008s
+user	0m0.000s
+sys	0m0.005s
+100; 2.76
+
+real	0m0.003s
+user	0m0.000s
+sys	0m0.003s
+1000; 3.172
+
+real	0m0.004s
+user	0m0.000s
+sys	0m0.003s
+10000; 3.1256
+
+real	0m0.004s
+user	0m0.000s
+sys	0m0.003s
+100000; 3.1424
+
+real	0m0.006s
+user	0m0.003s
+sys	0m0.002s
+1000000; 3.13922
+
+real	0m0.033s
+user	0m0.030s
+sys	0m0.002s
+10000000; 3.14129
+
+real	0m0.293s
+user	0m0.289s
+sys	0m0.003s
+100000000; 3.14168
+
+real	0m28.974s
+user	0m28.970s
+sys	0m0.003s
