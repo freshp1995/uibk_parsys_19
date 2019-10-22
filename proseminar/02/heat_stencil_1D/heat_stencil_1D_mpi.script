@@ -20,4 +20,18 @@
 #$ -pe openmpi-2perhost 2
 
 module load openmpi/4.0.1
-mpiexec ./heat_stencil_1D_mpi
+
+N=1000000000
+
+for (( i=10; i<$N; i*=10 ))
+do
+	time mpiexec -n 2 ./heat_stencil_1D_mpi $i
+done
+	
+echo 
+
+
+for (( i=10; i<$N; i*=10 ))
+do
+	time ./heat_stencil_1D_seq $i
+done
