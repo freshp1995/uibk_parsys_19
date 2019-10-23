@@ -6,7 +6,7 @@ Execute make file and ```pi_seq```.
 
 Results are close to the value of π.
 
-## Consider a palatalization strategy using MPI. Which communication pattern(s) would you choose and why?
+## Consider a parallelization strategy using MPI. Which communication pattern(s) would you choose and why?
 
 Since we create random values, we only have to parallelize this part. We don't have to send any initialize data to other ranks. For gathering results, we used  ```MPI_Reduce``` with the ```MPI_SUM``` method.
 
