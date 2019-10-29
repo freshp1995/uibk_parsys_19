@@ -138,12 +138,17 @@ int main(int argc, char **argv) {
     //for each time step
     time_t start = time(NULL);
     for (int t = 0; t < T; t++) {
+		
 		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
+		
 		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
+		
 		value_t *tempArray = getColumn(1,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
+		
 		tempArray = getColumn(N-2,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
+		
 		free(tempArray);
 		
 		MPI_Recv(&(ghost_up[0]), N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
@@ -201,7 +206,7 @@ int main(int argc, char **argv) {
 
     releaseVector(B, N);
 
-    printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+    printf("Verification from rank %d: %s\n", rank, (verify(A, N)) ? "OK" : "FAILED");
     
     
     //release the vector again
