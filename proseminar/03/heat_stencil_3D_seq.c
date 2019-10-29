@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
     }
 
-    int T = N * 500;
+    int T = N * 50000;
     printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N, N, T);
 
     //create a buffer
@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
     int Y = N / 5;
     int Z = N / 2;
     fill_vector(A, N, X, Y, Z);
-
 
     //create a second buffer for the computation
     Vector B = createVector(N);
@@ -62,10 +61,13 @@ int main(int argc, char **argv) {
 					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : tc;
 
 
-                    B[i][j][k] = tc + 0.2 * (
-                              t_above + t_left + 
-                        t_right + t_below + + t_behind + t_before + ( -6 * tc )
+                    B[i][j][k] = tc + 0.1 * (
+                                t_above + t_left + 
+                                t_right + t_below + 
+                                t_behind + t_before + ( -6 * tc )
                         );
+                    
+                    //printf("%f --> x: %d y: %d z: %d\n", B[i][j][k] , j, i, k);
                 }
             }
         }
@@ -136,12 +138,12 @@ void fill_vector(Vector m, int size, int x, int y, int z) {
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
             for (int k = 0; k < size; k++) {
-                m[i][j][k] = 273;
+                m[i][j][k] = 273.0;
             }
         }
     }
 
-    m[y][x][z] = 273 + 60;
+    m[y][x][z] = 273.0 + 60.0;
 
 }
 
@@ -154,7 +156,7 @@ int verify(Vector m, int size) {
                 if (273 <= temp && temp <= 273 + 60) {
                     continue;
                 }
-                printf("%f --> x: %d y: %d z: %d\n", temp, j, i, k);
+                //printf("%f --> x: %d y: %d z: %d\n", temp, j, i, k);
                 success = 0;
                 break;
             }
