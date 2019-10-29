@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "mpi.h"
+#include <mpi.h>
 
 typedef double value_t;
 
@@ -142,17 +142,17 @@ int main(int argc, char **argv) {
     
     //for each time step
     for (int t = 0; t < T; t++) {
-		MPI_Send(&A[1], N, MPI_INT, up_rank, 0, newComm);
-		MPI_Send(&A[N-2], N, MPI_INT, down_rank, 0, newComm);
+		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
+		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
 		value_t *tempArray = getColumn(0,A,N);
-		MPI_Send(&tempArray, N, MPI_INT, left_rank, 0, newComm);
+		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
 		tempArray = getColumn(N,A,N);
-		MPI_Send(&tempArray, N, MPI_INT, right_rank, 0, newComm);
+		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
 		
-		MPI_Recv(ghost_up, 1, MPI_INT, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_down, 1, MPI_INT, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_left, 1, MPI_INT, left_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_right, 1, MPI_INT, right_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(ghost_up, 1, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(ghost_down, 1, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(ghost_left, 1, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(ghost_right, 1, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
 		
 		A[0] = ghost_up;
 		A[N-1] = ghost_down;
