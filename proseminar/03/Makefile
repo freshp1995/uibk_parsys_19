@@ -1,5 +1,5 @@
 CC=gcc
-CC_FLAGS=-O0 -g -ggdb -std=c99 -Wall -Wextra -pedantic
+CC_FLAGS=-O0 -g -ggdb -std=c99 -Wall -Wextra -pedantic -lm
 MPI=mpicc
 
 .PHONEY: all
