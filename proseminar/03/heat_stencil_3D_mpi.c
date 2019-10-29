@@ -42,9 +42,10 @@ int main(int argc, char **argv) {
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-	
-	if(numProcs%2 != 0) {
-		printf("Rank size only multiple of 2");
+		
+	if(roundf(cbrt(numProcs)) != cbrt(numProcs)) {
+		printf("Cubic root of rank size must be a natural number\n");
+		MPI_Finalize();
 		return EXIT_FAILURE;
 	}
 
