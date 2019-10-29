@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <math.h>
+#include <time.h>
 
 typedef double value_t;
 
@@ -145,6 +146,7 @@ int main(int argc, char **argv) {
 	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
     
     //for each time step
+    time_t start = time(NULL);
     for (int t = 0; t < T; t++) {
 		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
 		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
@@ -205,10 +207,13 @@ int main(int argc, char **argv) {
 			}
 		}
     }
+    time_t stop = time(NULL);
 
     releaseVector(B, N);
 
     printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+
+    printf("The Program took %ld to execute\n", stop - start);
 
     //release the vector again
     releaseVector(A, N);
