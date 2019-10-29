@@ -52,19 +52,14 @@ int main(int argc, char **argv) {
                 value_t tc = A[i][j];
 
                 //get temperatur of adjacent cells
-                value_t t_left_above = (i != 0 && j != 0) ? A[i - 1][j - 1] : tc;
                 value_t t_above = (i != 0) ? A[i - 1][j] : tc;
-                value_t t_right_above = (i != 0 && j != N -1) ? A[i - 1][j + 1] : tc;
                 value_t t_left = (j != 0) ? A[i][j - 1] : tc;
                 value_t t_right = (j != N - 1) ? A[i][j + 1] : tc;
-                value_t t_left_below = (i != N -1 && j != 0) ? A[i + 1][j - 1] : tc;
                 value_t t_below = (i != N - 1) ? A[i + 1][j] : tc;
-                value_t t_right_below = (i != N - 1 && j != N - 1) ? A[i + 1][j + 1] : tc;
 
                 B[i][j] = tc + 0.2 * (
-                        t_left_above + t_above + t_right_above +
-                        t_left + t_right +
-                        t_left_below + t_below + t_right_below + ( -8 * tc )
+                        t_above + t_left + 
+                        t_right + t_below + ( -8 * tc )
                     );
             }
         }
