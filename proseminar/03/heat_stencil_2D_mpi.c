@@ -29,7 +29,7 @@ void insertColumn(value_t *c, int pos, Vector m, int size);
 // -- simulation code ---
 
 int main(int argc, char **argv) {
-    int N_big = 50;
+    int N_big = 10; //TODO 50
     if (argc > 1) {
         N_big = atoi(argv[1]);
     }
@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
   
 
     int T = N_big * 500;
-    printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N_big, N_big, T);
-	
+   	
 	//+2 because left and right ghost cell
 	int N = (N_big/numProcs) + 2;
 	
@@ -65,6 +64,8 @@ int main(int argc, char **argv) {
 	int Y = N_big / 5;
 
 	if(rank == 0) {
+		 printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N_big, N_big, T);
+
 
 		//create a buffer
 		Vector A_big = createVector(N_big);
@@ -82,18 +83,19 @@ int main(int argc, char **argv) {
 		for(int i = 0; i < numProcs; i++) {
 			
 			int array_size[] = {N_big,N_big};
-			int array_subsize[] = {N-2*N-2};
+			int array_subsize[] = {N-2,N-2};
 			int array_start[] = {0,0};
 			
-			
 			MPI_Datatype subArray;
+
 			MPI_Type_create_subarray(2, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_INT, &subArray);
 			MPI_Type_commit(&subArray);
 			
-			MPI_Send(A_big, N-2*N-2, subArray, i, 0, MPI_COMM_WORLD);
-			MPI_Send(B_big, N-2*N-2, subArray, i, 0, MPI_COMM_WORLD);
-		    
+			MPI_Send(&(A_big[0][0]), 1, subArray, i, 0, MPI_COMM_WORLD);
+			MPI_Send(&(B_big[0][0]), 1, subArray, i, 0, MPI_COMM_WORLD);
+			
 		    MPI_Type_free(&subArray);
+		    
 		}
 		
 
@@ -102,30 +104,34 @@ int main(int argc, char **argv) {
 	
 	
 	
-	//-2 left out for ghost cells
-	MPI_Recv(A, N-2*N-2, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(B, N-2*N-2, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	//A[1][1] - first cell left out for ghost cells
+	MPI_Recv(&(A[1][1]), (N-2)*(N-2), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&(B[1][1]), (N-2)*(N-2), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     
+    printf("Recive subarray size %d \n", (N-2)*(N-2));
+    
+    
+    //braucht man nimmer da oben A[1][1] TODO löschen
     //move rows one down
-	memmove(&A[0], &A[1], (N*N-1) * sizeof *A);
+	/*memmove(&A[0], &A[1], (N*N-1) * sizeof *A);
 	memmove(&B[0], &B[1], (N*N-1) * sizeof *A);
 	
 	columnShiftRight(0,A,N);
-	columnShiftRight(0,B,N);
+	columnShiftRight(0,B,N);*/
 	
-	//TODO more column one right
 
     value_t *ghost_left;
     value_t *ghost_right;
     value_t *ghost_up;
     value_t *ghost_down;
     
-    MPI_Comm* newComm;
+    MPI_Comm newComm;
     
     int dims[] = {N,N};
     int periods[] = {1,1};
+    int reorder = 1;
     
-    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, newComm);
+    MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, reorder, &newComm);
 
 	int left_rank;
 	int right_rank;
@@ -199,6 +205,8 @@ int main(int argc, char **argv) {
 
     //release the vector again
     releaseVector(A, N);
+    
+    MPI_Finalize();
 }
 
 Vector createVector(int N) {
