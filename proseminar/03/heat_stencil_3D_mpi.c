@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <mpi.h>
+#include <math.h>
 
 typedef double value_t;
 
@@ -15,18 +17,18 @@ void fill_vector(Vector m, int size, int x, int y, int z);
 
 int verify(Vector m, int size);
 
-value_t *getColumn(int pos, Vector m, int size);
+value_t *getCell(int y, int z, Vector m, int size);
 
-void columnShiftRight(int start, Vector m, int size);
+void CellShiftRight(int start, Vector m, int size);
 
-void insertColumn(value_t *c, int pos, Vector m, int size);
+void insertCell(value_t *c, int y, int z, Vector m, int size);
 
 // -- simulation code ---
 
 int main(int argc, char **argv) {
     int N_big = 10;
     if (argc > 1) {
-        N = atoi(argv[1]);
+        N_big = atoi(argv[1]);
     }
     
     int rank;
@@ -43,10 +45,10 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-    int T = N * 500;
+    int T = N_big * 500;
     
     //+4 because left and right behind before ghost cell
-	int N = (N_big/numProcs) + 4;
+	int N = (N_big/cbrt(numProcs)) + 4;
 	
 	Vector A = createVector(N);
 	Vector B = createVector(N);
@@ -115,7 +117,7 @@ int main(int argc, char **argv) {
 	int up_rank;
 	int down_rank;
 	int behind_rank;
-	int before_rank
+	int before_rank;
 	MPI_Cart_shift(newComm, 0, 1, &left_rank, &right_rank);
 	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
 	MPI_Cart_shift(newComm, 2, 1, &before_rank, &behind_rank);
@@ -145,14 +147,14 @@ int main(int argc, char **argv) {
 		A[N-1] = ghost_down;
 		B[0] = ghost_up;
 		B[N-1] = ghost_down;
-		insertZell(ghost_left, 0,0, A, N);
-		insertZell(ghost_left, 0,0, B, N);
-		insertZell(ghost_right, N,0, A, N);
-		insertZell(ghost_right, N,0, B, N);
-		insertZell(ghost_behind, 0,N, A, N);
-		insertZell(ghost_behind, 0,N, B, N);
-		insertZell(ghost_before, N,N, A, N);
-		insertZell(ghost_before, N,N, B, N);
+		insertCell(ghost_left, 0,0, A, N);
+		insertCell(ghost_left, 0,0, B, N);
+		insertCell(ghost_right, N,0, A, N);
+		insertCell(ghost_right, N,0, B, N);
+		insertCell(ghost_behind, 0,N, A, N);
+		insertCell(ghost_behind, 0,N, B, N);
+		insertCell(ghost_before, N,N, A, N);
+		insertCell(ghost_before, N,N, B, N);
 		
 		
         //we propagate the temparature
@@ -279,32 +281,32 @@ int verify(Vector m, int size) {
 
 
 //TODO
-value_t *getZell(int y, int z, Vector m, int size) {
+value_t *getCell(int y, int z, Vector m, int size) {
 	
 	value_t temp[size][size];
 	
 	for(int i = 0; i < size; i++) {
-		temp[i] = m[i][y];
+		//temp[i] = m[i][y][z];
 	}
 	
 	return temp;
 	
 }
 
-void zellShiftRight(int start, Vector m, int size) {
+void CellShiftRight(int start, Vector m, int size) {
 		
 	for(int i = size; i <= start; i++) {
-		m[i] = getColumn(i+1,m,size);
+		//m[i] = getCell(i+1,m,size);
 	}
 	
 }
 
 
-void insertZell(value_t *c, int y, int z, Vector m, int size) {
+void insertCell(value_t *c, int y, int z, Vector m, int size) {
 	
 	for (int i = 0; i < size; i++) {
-		if(i == pos) {
-			columnShiftRight(i,m,size);
+		if(i == y) {
+			CellShiftRight(i,m,size);
 			m[i] = c;
 		}
 	}

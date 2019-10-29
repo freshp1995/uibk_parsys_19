@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 			
 			MPI_Datatype subArray;
 
-			MPI_Type_create_subarray(2, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_INT, &subArray);
+			MPI_Type_create_subarray(2, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_DOUBLE, &subArray);
 			MPI_Type_commit(&subArray);
 			
 			MPI_Send(&(A_big[0][0]), 1, subArray, i, 0, MPI_COMM_WORLD);
@@ -121,14 +121,14 @@ int main(int argc, char **argv) {
 	columnShiftRight(0,B,N);*/
 	
 
-    value_t *ghost_left;
-    value_t *ghost_right;
-    value_t *ghost_up;
-    value_t *ghost_down;
+    value_t ghost_left[N];
+    value_t ghost_right[N];
+    value_t ghost_up[N];
+    value_t ghost_down[N];
     
     MPI_Comm newComm;
     
-    int dims[] = {N,N};
+    int dims[] = {sqrt(numProcs),sqrt(numProcs)};
     int periods[] = {1,1};
     int reorder = 1;
     
@@ -150,10 +150,10 @@ int main(int argc, char **argv) {
 		tempArray = getColumn(N-1,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
 		
-		MPI_Recv(ghost_up, 1, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_down, 1, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_left, 1, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(ghost_right, 1, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_up[0]), N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_down[0]), N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_left[0]), N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_right[0]), N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
 		
 		A[0] = ghost_up;
 		A[N-1] = ghost_down;
@@ -163,6 +163,8 @@ int main(int argc, char **argv) {
 		insertColumn(ghost_left, 0, B, N);
 		insertColumn(ghost_right, N, A, N);
 		insertColumn(ghost_right, N, B, N);
+		
+		
 
 		
         //we propagate the temparature
