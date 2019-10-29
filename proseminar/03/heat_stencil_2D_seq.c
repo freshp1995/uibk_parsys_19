@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef double value_t;
 
@@ -16,6 +17,11 @@ void fill_vector(Vector m, int size, int x, int y);
 int verify(Vector m, int size);
 
 // -- simulation code ---
+long timediff(clock_t t1, clock_t t2) {
+    long elapsed;
+    elapsed = ((double)t2 - t1) / CLOCKS_PER_SEC * 1000;
+    return elapsed;
+}
 
 int main(int argc, char **argv) {
     int N = 50;
@@ -38,6 +44,7 @@ int main(int argc, char **argv) {
     //create a second buffer for the computation
     Vector B = createVector(N);
     
+    time_t start = clock();
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
@@ -75,7 +82,11 @@ int main(int argc, char **argv) {
 
     releaseVector(B, N);
 
+    time_t stop = clock();
     printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+
+    long elapsed = timediff(start, stop);
+    printf("elapsed: %ld ms\n", elapsed);
 
     //release the vector again
     releaseVector(A, N);

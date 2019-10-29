@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef double value_t;
 
@@ -16,6 +17,11 @@ void fill_vector(Vector m, int size, int x, int y, int z);
 int verify(Vector m, int size);
 
 // -- simulation code ---
+long timediff(clock_t t1, clock_t t2) {
+    long elapsed;
+    elapsed = ((double)t2 - t1) / CLOCKS_PER_SEC * 1000;
+    return elapsed;
+}
 
 int main(int argc, char **argv) {
     int N = 10;
@@ -23,7 +29,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
     }
 
-    int T = N * 50000;
+    int T = N * 500;
     printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N, N, T);
 
     //create a buffer
@@ -38,6 +44,7 @@ int main(int argc, char **argv) {
     //create a second buffer for the computation
     Vector B = createVector(N);
     
+    time_t start = clock();
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
@@ -80,10 +87,14 @@ int main(int argc, char **argv) {
             printf("Current timestamp t=%d\n", t);
         }
     }
+    time_t stop = clock();
 
     releaseVector(B, N);
 
     printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+
+    long elapsed = timediff(start, stop);
+    printf("elapsed: %ld ms\n", elapsed);
 
     //release the vector again
     releaseVector(A, N);
