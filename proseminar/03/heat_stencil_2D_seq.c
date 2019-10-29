@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
                 B[i][j] = tc + 0.2 * (
                         t_above + t_left + 
-                        t_right + t_below + ( -8 * tc )
+                        t_right + t_below + ( -4 * tc )
                     );
             }
         }
