@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+#include <math.h>
 
 typedef double value_t;
 
@@ -54,7 +55,7 @@ int main(int argc, char **argv) {
     int T = N_big * 500;
    	
 	//+2 because left and right ghost cell
-	int N = (N_big/numProcs) + 2;
+	int N = (N_big/sqrt(numProcs)) + 2;
 	
 	Vector A = createVector(N);
 	Vector B = createVector(N);
