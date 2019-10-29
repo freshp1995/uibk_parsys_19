@@ -18,9 +18,9 @@ void fill_vector(Vector m, int size, int x, int y);
 
 int verify(Vector m, int size);
 
-value_t *getColumn(int pos, Vector m, int size);
+void printVector(Vector m, int size);
 
-void columnShiftRight(int start, Vector m, int size);
+value_t *getColumn(int pos, Vector m, int size);
 
 void insertColumn(value_t *c, int pos, Vector m, int size);
 
@@ -164,8 +164,6 @@ int main(int argc, char **argv) {
 		insertColumn(ghost_left, 0, B, N);
 		insertColumn(ghost_right, N, A, N);
 		insertColumn(ghost_right, N, B, N);
-		
-		
 
 		
         //we propagate the temparature
@@ -214,7 +212,7 @@ int main(int argc, char **argv) {
 
 	if(rank == 0) {
 
-    printf("The Program took %ld to execute\n", stop - start);
+		printf("The Program took %ld to execute\n", stop - start);
 	}
 
     
@@ -292,23 +290,19 @@ value_t *getColumn(int pos, Vector m, int size) {
 	
 }
 
-void columnShiftRight(int start, Vector m, int size) {
-		
-	for(int i = size; i <= start; i++) {
-		m[i] = getColumn(i+1,m,size);
-	}
-	
-}
 
 void insertColumn(value_t *c, int pos, Vector m, int size) {
 	
-	for (int i = 0; i < size; i++) {
-		if(i == pos) {
-			columnShiftRight(i,m,size);
-			m[i] = c;
+	for(int i = size-2; i >= 0; i--) {
+		for(int j = size-1; j >= 0; j--) {
+			m[i][j+1] = m[i][j];
+			if(j == pos) {
+				m[i][j] = c[j];
+				break;
+			}
 		}
 	}
-	
+		
 	
 }
 
