@@ -52,42 +52,19 @@ int main(int argc, char **argv) {
 
                     //get temperatur at current position
                     value_t tc = A[i][j][k];
-
+                    
                     //get temperatur of adjacent cells
-                    value_t t_left_above_behind = (i != 0 && j != 0 && k != 0) ? A[i - 1][j - 1][k - 1] : tc;
-                    value_t t_above_mid_behind = (i != 0 && k != 0) ? A[i - 1][j][k - 1] : tc;
-                    value_t t_right_above_behind = (i != 0 && j != N -1 && k != 0) ? A[i - 1][j + 1][k - 1] : tc;
-                    value_t t_left_behind = (j != 0 && k != 0) ? A[i][j - 1][k - 1] : tc;
                     value_t t_behind = (k != 0) ? A[i][j][k - 1] : tc;
-                    value_t t_right_behind = (j != N - 1 && k != 0) ? A[i][j + 1][k - 1] : tc;
-                    value_t t_left_below_behind = (i != N -1 && j != 0 && k != 0) ? A[i + 1][j - 1][k - 1] : tc;
-                    value_t t_below_behind = (i != N - 1 && k != 0) ? A[i + 1][j][k - 1] : tc;
-                    value_t t_right_below_behind = (i != N - 1 && j != N - 1 && k != 0) ? A[i + 1][j + 1][k - 1] : tc;
-
-                    value_t t_left_above_mid = (i != 0 && j != 0) ? A[i - 1][j - 1][k] : tc;
-                    value_t t_above_mid = (i != 0) ? A[i - 1][j][k] : tc;
-                    value_t t_right_above_mid = (i != 0 && j != N -1) ? A[i - 1][j + 1][k] : tc;
-                    value_t t_left_mid = (j != 0) ? A[i][j - 1][k] : tc;
-                    value_t t_right_mid = (j != N - 1) ? A[i][j + 1][k] : tc;
-                    value_t t_left_below_mid = (i != N -1 && j != 0) ? A[i + 1][j - 1][k] : tc;
-                    value_t t_below_mid = (i != N - 1) ? A[i + 1][j][k] : tc;
-                    value_t t_right_below_mid = (i != N - 1 && j != N - 1) ? A[i + 1][j + 1][k] : tc;
-
-                    value_t t_left_above_before = (i != 0 && j != 0 && k != N - 1) ? A[i - 1][j - 1][k + 1] : tc;
-                    value_t t_above_mid_before = (i != 0 && k != N -1) ? A[i - 1][j][k + 1] : tc;
-                    value_t t_right_above_before = (i != 0 && j != N -1 && k != N - 1) ? A[i - 1][j + 1][k + 1] : tc;
-                    value_t t_left_before = (j != 0 && k != N - 1) ? A[i][j - 1][k + 1] : tc;
                     value_t t_before = (k != N - 1) ? A[i][j][k + 1] : tc;
-                    value_t t_right_before = (j != N - 1 && k != N - 1) ? A[i][j + 1][k + 1] : tc;
-                    value_t t_left_below_before = (i != N -1 && j != 0 && k != N - 1) ? A[i + 1][j - 1][k + 1] : tc;
-                    value_t t_below_before = (i != N - 1 && k != N - 1) ? A[i + 1][j][k + 1] : tc;
-                    value_t t_right_below_before = (i != N - 1 && j != N - 1 && k != N - 1) ? A[i + 1][j + 1][k + 1] : tc;
+                    value_t t_above = (i != 0) ? A[i - 1][j][k] : tc;
+					value_t t_left = (j != 0) ? A[i][j - 1][k] : tc;
+					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : tc;
+					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : tc;
+
 
                     B[i][j][k] = tc + 0.2 * (
-                            t_left_above_behind + t_above_mid_behind + t_right_above_behind + t_left_behind + t_behind + t_right_behind + t_left_below_behind + t_below_behind + t_right_below_behind +
-                            t_left_above_mid + t_above_mid + t_right_above_mid + t_left_mid + t_right_mid + t_left_below_mid + t_below_mid + t_right_below_mid + 
-                            t_left_above_before + t_above_mid_before + t_right_above_before + t_left_before + t_before + t_right_before + t_left_below_before + t_below_before + t_right_below_before +
-                            ( -(9 + 9 + 8) * tc )
+                              t_above + t_left + 
+                        t_right + t_below + + t_behind + t_before + ( -6 * tc )
                         );
                 }
             }
