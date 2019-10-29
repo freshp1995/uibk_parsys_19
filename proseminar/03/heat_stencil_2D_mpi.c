@@ -99,6 +99,9 @@ int main(int argc, char **argv) {
 		    
 		}
 		
+		releaseVector(A_big, N_big);
+		releaseVector(B_big,N_big);
+		
 
     
 	}
@@ -149,6 +152,7 @@ int main(int argc, char **argv) {
 		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
 		tempArray = getColumn(N-1,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
+		free(tempArray);
 		
 		MPI_Recv(&(ghost_up[0]), N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_down[0]), N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
@@ -234,10 +238,10 @@ Vector createVector(int N) {
 
 void releaseVector(Vector m, int size) {
     for (int i = 0; i < size; i++) {
-        free(m[i]);
+        //free(m[i]);
     }
 
-    free(m);
+    //free(m);
 }
 
 void fill_vector(Vector m, int size, int x, int y) {
