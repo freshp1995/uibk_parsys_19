@@ -144,9 +144,9 @@ int main(int argc, char **argv) {
     for (int t = 0; t < T; t++) {
 		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
 		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
-		value_t *tempArray = getColumn(0,A,N);
+		value_t *tempArray = getColumn(1,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
-		tempArray = getColumn(N,A,N);
+		tempArray = getColumn(N-1,A,N);
 		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
 		
 		MPI_Recv(ghost_up, 1, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
