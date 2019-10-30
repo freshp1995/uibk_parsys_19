@@ -22,7 +22,25 @@
 module load openmpi/4.0.1
 
 
-mpiexec -n 8 ./heat_stencil_2D_mpi
+#mpiexec -n 8 ./heat_stencil_3D_mpi
 
 
+#num of ranks
+P=50
+#size of array
+N=1000
 
+#for (( i=2; i<$P; i+=1 ))
+#do
+#	for (( j=10; j<$N; j*=10 ))
+#	do
+#		mpiexec -n 4 ./heat_stencil_3D_mpi
+#	done
+#done
+#echo 
+
+
+for (( j=10; j<$N; j+=50 ))
+do
+	./heat_stencil_3D_seq $j
+done

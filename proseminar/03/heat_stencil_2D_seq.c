@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     }
 
     int T = N * 500;
-    printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N, N, T);
+    //printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N, N, T);
 
     //create a buffer
     Vector A = createVector(N);
@@ -76,17 +76,18 @@ int main(int argc, char **argv) {
         B = H;
 
         if (!(t % 1000)) {
-            printf("Current timestamp t=%d\n", t);
+            //printf("Current timestamp t=%d\n", t);
         }
     }
 
     releaseVector(B, N);
 
     time_t stop = clock();
-    printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+   // printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
 
     long elapsed = timediff(start, stop);
-    printf("elapsed: %ld ms\n", elapsed);
+    //printf("elapsed: %ld ms\n", elapsed);
+    printf("%ld\n", elapsed);
 
     //release the vector again
     releaseVector(A, N);
@@ -143,7 +144,7 @@ int verify(Vector m, int size) {
             if (273 <= temp && temp <= 273 + 60) {
                 continue;
             }
-            printf("%f --> x: %d y: %d\n", temp, j, i);
+            //printf("%f --> x: %d y: %d\n", temp, j, i);
             success = 0;
             break;
         }
