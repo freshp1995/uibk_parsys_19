@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 		
-	if(roundf(cbrt(numProcs)) != cbrt(numProcs)) {
+	if(roundf(N_big/numProcs) != (N_big/numProcs)) {
 		printf("Cubic root of rank size must be a natural number\n");
 		MPI_Finalize();
 		return EXIT_FAILURE;
@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 	int T = N_big * 500;
 	
 	//+4 because left and right behind before ghost cell
-	int N = (N_big/cbrt(numProcs));
+	int N = (N_big/numProcs);
 	
 	Matrix A = createMatrix(N);
 	Matrix B = createMatrix(N);
@@ -72,21 +72,7 @@ int main(int argc, char **argv) {
 	int X = N_big / 4;
 	int Y = N_big / 5;
 	int Z = N_big / 2;
-	
-	MPI_Comm newComm;
-	
-    int dims[] = {cbrt(numProcs),cbrt(numProcs),cbrt(numProcs)};
-    
-    //int dims[3] = {0,0,0};
 
-	//MPI_Dims_create(numProcs, 3, dims);
-    
-    int periods[] = {1,1,1};
-    int reorder = 1;
-    
-    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, reorder, &newComm);
-    
-	MPI_Comm_rank(newComm, &rank);
 	
 	
 	if(rank == 0) {
@@ -107,26 +93,11 @@ int main(int argc, char **argv) {
 
 		for(int i = 0; i < numProcs; i++) {
 			
-			MPI_Datatype subArray;
-			int coords[3];
-			MPI_Cart_coords(newComm, i, 3, coords);
-				
-			int array_size[] = {N_big,N_big, N_big};
-			int array_subsize[] = {N,N,N};
-			int array_start[] = {coords[0]*array_subsize[0],coords[1]*array_subsize[1],coords[2]*array_subsize[2]}; 
-
-			printf("coords %d, %d, %d\n", array_start[0], array_start[1], array_start[2]);
-
-			MPI_Type_create_subarray(3, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_DOUBLE, &subArray);
-			MPI_Type_commit(&subArray);
+	
+			MPI_Send(&(A_big[i*N][0][0]), 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+			MPI_Send(&(B_big[i*N][0][0]), 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
 			
-			//MPI_Send(&(A_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
-			//MPI_Send(&(B_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
-
-			//MPI_Send(&(A_big[0][0][0]), 1, subArray, i, 0, newComm);
-			//MPI_Send(&(B_big[0][0][0]), 1, subArray, i, 0, newComm);
 			
-			MPI_Type_free(&subArray);
 				
 		}
 		
@@ -135,16 +106,32 @@ int main(int argc, char **argv) {
     
 	}
 
-	//MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
-    //MPI_Recv(&(B[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+	MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&(B[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     
     printf("Recive subarray size %d \n", (N)*(N)*(N));
     
    
     //TODO for testing
-    fill_Matrix(A, N, X, Y, Z);
-    //printMatrix(A, N);
+    //fill_Matrix(A, N, X, Y, Z);
+    printMatrix(A, N);
 
+    
+    	
+	MPI_Comm newComm;
+	
+    int dims[] = {cbrt(numProcs),cbrt(numProcs),cbrt(numProcs)};
+    
+    //int dims[3] = {0,0,0};
+
+	//MPI_Dims_create(numProcs, 3, dims);
+    
+    int periods[] = {1,1,1};
+    int reorder = 1;
+    
+    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, reorder, &newComm);
+    
+	MPI_Comm_rank(newComm, &rank);
     
     
     Vector ghost_left = createVector(N);
