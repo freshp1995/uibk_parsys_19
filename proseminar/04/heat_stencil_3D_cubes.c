@@ -102,7 +102,8 @@ int main(int argc, char **argv) {
 
 		//create a second buffer for the computation
 		Matrix B_big = createMatrix(N_big);
-
+		
+		
 
 		for(int i = 0; i < numProcs; i++) {
 			
@@ -119,8 +120,11 @@ int main(int argc, char **argv) {
 			MPI_Type_create_subarray(3, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_DOUBLE, &subArray);
 			MPI_Type_commit(&subArray);
 			
-			MPI_Send(&(A_big[0][0][0]), 1, subArray, i, 0, newComm);
-			MPI_Send(&(B_big[0][0][0]), 1, subArray, i, 0, newComm);
+			//MPI_Send(&(A_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
+			//MPI_Send(&(B_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
+
+			//MPI_Send(&(A_big[0][0][0]), 1, subArray, i, 0, newComm);
+			//MPI_Send(&(B_big[0][0][0]), 1, subArray, i, 0, newComm);
 			
 			MPI_Type_free(&subArray);
 				
@@ -131,13 +135,15 @@ int main(int argc, char **argv) {
     
 	}
 
-	MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
-    MPI_Recv(&(B[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+	//MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+    //MPI_Recv(&(B[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
     
     printf("Recive subarray size %d \n", (N)*(N)*(N));
     
-   // printMatrix(A, N);
-    
+   
+    //TODO for testing
+    fill_Matrix(A, N, X, Y, Z);
+    //printMatrix(A, N);
 
     
     
@@ -159,35 +165,36 @@ int main(int argc, char **argv) {
 	MPI_Cart_shift(newComm, 0, 1, &left_rank, &right_rank);
 	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
 	MPI_Cart_shift(newComm, 2, 1, &before_rank, &behind_rank);
+	
+	Vector tempArray = createVector(N);
 
 	
     
     time_t start = clock();
     //for each time step
 	for (int t = 0; t < T; t++) {
-		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
-		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
+		MPI_Send(&(A[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm);
+		MPI_Send(&(A[N-1][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
 		
 		int startLeft[3] = {0,0,0};
 		int endLeft[3] = {1,N,N};		
-		Vector tempArray = createVector(N);
+		
 		getCell(startLeft,endLeft,A,N, tempArray);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
-
+		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
 		int startRight[3] = {N-1,0,0};
 		int endRight[3] = {N,N,N};	
 		getCell(startRight,endRight,A,N,tempArray);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
+		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm);
 		
 		int startBehind[3] = {0,0,N-1};
 		int endBehind[3] = {N,N,N};
 		getCell(startBehind,endBehind,A,N,tempArray);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, behind_rank, 0, newComm);
+		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm);
 		
 		int startBefore[3] = {0,0,0};
 		int endBefore[3] = {N,N,1};
 		getCell(startBefore,endBefore,A,N,tempArray);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, before_rank, 0, newComm);
+		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm);
 		
 		MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
@@ -196,8 +203,8 @@ int main(int argc, char **argv) {
 		MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
 
-		if(rank == 0)
-			printVector(ghost_up, N);
+		if(rank == 0 && t == 0)
+			printVector(ghost_behind, N);
 
 
 
@@ -229,7 +236,7 @@ int main(int argc, char **argv) {
                                 t_behind + t_before + ( -6 * tc )
                         );
                     
-                    printf("%f --> x: %d y: %d z: %d\n", B[i][j][k] , j, i, k);
+                    //printf("%f --> x: %d y: %d z: %d\n", B[i][j][k] , j, i, k);
                 }
             }
         }
