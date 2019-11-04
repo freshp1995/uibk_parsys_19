@@ -17,6 +17,7 @@ heat_stencil_3D_slabs: heat_stencil_3D_slabs.c
 .PHONEY: clean
 clean:
 	@rm heat_stencil_3D_cubes
+	@rm heat_stencil_3D_slabs
 
 
 .PHONEY: run

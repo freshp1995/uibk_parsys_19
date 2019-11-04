@@ -393,6 +393,8 @@ Vector createVector(int N) {
             perror("Could not allocate memory");
             return NULL;
         }
+
+        
     }
 
     return y;

@@ -30,7 +30,7 @@ long timediff(clock_t t1, clock_t t2) {
 }
 
 int main(int argc, char **argv) {
-    int N_big = 10;
+    int N_big = 4;
     if (argc > 1) {
         N_big = atoi(argv[1]);
     }
