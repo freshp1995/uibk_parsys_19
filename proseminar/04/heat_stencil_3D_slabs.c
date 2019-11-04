@@ -65,8 +65,8 @@ int main(int argc, char **argv) {
 	//+4 because left and right behind before ghost cell
 	int N = (N_big/numProcs);
 	
-	Matrix A = createMatrix(N);
-	Matrix B = createMatrix(N);
+	Matrix A = createMatrix(N_big);
+	Matrix B = createMatrix(N_big);
 
 	//fill the array
 	int X = N_big / 4;
@@ -90,34 +90,31 @@ int main(int argc, char **argv) {
 		Matrix B_big = createMatrix(N_big);
 		
 		
-
 		for(int i = 0; i < numProcs; i++) {
 			
 	
-			//MPI_Send(&(A_big[i][0][0]), N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
-			//MPI_Send(&(B_big[i][0][0]), N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
+			MPI_Send(&(A_big[0][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
+			//MPI_Send(&(B_big[0][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
 
             //printf("Send to rank %d\n", i);
 				
 		}
-
-        printMatrix(A_big, N_big);
 
 		releaseMatrix(A_big, N_big);
 		releaseMatrix(B_big,N_big);
     
 	}
 
-    //printf("Ready to receive data %d\n", rank);
-	//MPI_Recv(&(A[rank][0][0]), N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    //MPI_Recv(&(B[rank][0][0]), N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    printf("Ready to receive data %d\n", rank);
+	MPI_Recv(&(A[0][0][0]), N*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    //MPI_Recv(&(B[0][0][0]), N*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     
-    //printf("Recive subarray size %d \n", (N)*(N)*(N));
+    printf("Recive subarray size %d \n", (N_big)*(N_big)*(N_big));
     
    
     //TODO for testing
     //fill_Matrix(A, N, X, Y, Z);
-    //printMatrix(A, N);
+    printMatrix(A, N_big);
 
     
     	/*
@@ -270,18 +267,44 @@ int main(int argc, char **argv) {
 }
 
 Matrix createMatrix(int N) {
-    value_t (*data)[N][N] = malloc(sizeof(value_t) * N * N * N);
+    value_t *data = (value_t *)malloc(sizeof(value_t) * N * N * N);
     if (data == NULL) {
         perror("Could not allocate memory");
         return NULL;
     }
 
-    return data;
+    Matrix y = malloc(sizeof(value_t) * N);
+
+    if (y == NULL) {
+        perror("Could not allocate memory");
+        return NULL;
+    }
+
+    for (int i = 0; i < N; i++) {
+        y[i] = malloc(sizeof(value_t) * N);
+
+        if (y[i] == NULL) {
+            perror("Could not allocate memory");
+            return NULL;
+        }
+
+        for (int j = 0; j < N; j++) {
+            y[i][j] = &(data[N * (i * (int)pow(N, 1) + j * (int)pow(N, 0))]);
+        }
+    }
+
+    return y;
 }
 
 void releaseMatrix(Matrix m, int size) {
 
     free(m[0][0]);
+
+    for (int i = 0; i < size; i++) {
+        free(m[i]);
+    }
+
+    free(m);
 }
 
 void fill_Matrix(Matrix m, int size, int x, int y, int z) {
