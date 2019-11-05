@@ -85,65 +85,71 @@ int main(int argc, char **argv) {
 
 	 
 		fill_Matrix(A_big, N_big, X, Y, Z);
-
-		//create a second buffer for the computation
-		Matrix B_big = createMatrix(N_big);
 		
 		
-		for(int i = 0; i < numProcs; i++) {
+		for(int i = 1; i < numProcs; i++) {
 			
 	
 			MPI_Send(&(A_big[i*N][0][0]), N_big*N_big*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
 				
 		}
 
-		releaseMatrix(A_big, N_big);
-		releaseMatrix(B_big,N_big);
-    
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N_big; j++) {
+                for (int k = 0; k < N_big; k++) {
+                    A[i][j][k] = A_big[i][j][k];
+                }
+            }
+        }
+
+		releaseMatrix(A_big, N_big);    
 	}
 
-    printf("Ready to receive data %d\n", rank);
-	MPI_Recv(&(A[0][0][0]), N_big*N_big*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	    
-    printf("Recive subarray size %d \n", (N_big)*(N_big)*(N));
     
+
+    if (rank != 0) {
+        printf("Ready to receive data %d\n", rank);
+	    MPI_Recv(&(A[0][0][0]), N_big*N_big*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        printf("Recive subarray size %d \n", (N_big)*(N_big)*(N));
+    }
 
     
     	
 	MPI_Comm newComm;
 	
-    int dims[] = {cbrt(numProcs),cbrt(numProcs),cbrt(numProcs)};
+    int dims[] = {numProcs};
     
-    int periods[] = {1,1,1};
-    int reorder = 1;
+    int periods[] = {1};
+    int reorder = 0;
     
-    MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, reorder, &newComm);
+    MPI_Cart_create(MPI_COMM_WORLD, 1, dims, periods, reorder, &newComm);
     
-	MPI_Comm_rank(newComm, &rank);
+	//MPI_Comm_rank(newComm, &rank);
+ 
     
-    
-    Vector ghost_up = createVector(N);
-    Vector ghost_down = createVector(N);
+    Vector ghost_up = createVector(N_big);
+    Vector ghost_down = createVector(N_big);
     
    
     
 
 	int up_rank;
 	int down_rank;
-	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
+	MPI_Cart_shift(newComm, 0, 1, &up_rank, &down_rank);
 
 
     time_t start = clock();
     //for each time step
+    printf("Begin to calculate--------");
 	for (int t = 0; t < T; t++) {
 		
 
-		MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm);
+		MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 1, newComm);
 		MPI_Send(&(A[N-1][0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm);
 		
 		
 		MPI_Recv(&(ghost_up[0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 1, newComm, MPI_STATUS_IGNORE);
 	
 
 
@@ -186,7 +192,7 @@ int main(int argc, char **argv) {
         B = H;
 
 		if(rank == 0) {
-			if (!(t % 1000)) {
+			if (!(t % 10)) {
 				printf("Current timestamp t=%d\n", t);
 			}
 		}
