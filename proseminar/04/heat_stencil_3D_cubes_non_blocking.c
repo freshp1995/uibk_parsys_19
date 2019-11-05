@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 		//printMatrix(A_big, N_big);
 		
 
-		for(int i = 0; i < numProcs; i++) {
+		for(int i = 1; i < numProcs; i++) {
 			
 			MPI_Datatype subArray;
 			int coords[3];
@@ -121,14 +121,23 @@ int main(int argc, char **argv) {
 				
 		}
 		
+		  for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int k = 0; k < N; k++) {
+                    A[i][j][k] = A_big[i][j][k];
+                }
+            }
+        }
+		
 		releaseMatrix(A_big, N_big);
     
 	}
 
-	MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+	if(rank != 0) {
+		MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
     
-    printf("Recive subarray size %d \n", (N)*(N)*(N));
-    
+		printf("Recive subarray size %d \n", (N)*(N)*(N));
+	}
   
     
     
