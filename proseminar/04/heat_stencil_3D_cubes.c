@@ -158,6 +158,20 @@ int main(int argc, char **argv) {
 	Vector tempArray = createVector(N);
 	
 	value_t* buffer = (value_t*)malloc(N * N * sizeof(value_t));
+
+    MPI_Request requestLeft;
+	MPI_Request requestRight;
+	MPI_Request requestUp;
+	MPI_Request requestDown;
+	MPI_Request requestBehind;
+	MPI_Request requestBefore;
+
+    MPI_Request requestLeftRecv;
+	MPI_Request requestRightRecv;
+	MPI_Request requestUpRecv;
+	MPI_Request requestDownRecv;
+	MPI_Request requestBehindRecv;
+	MPI_Request requestBeforeRecv;
 	
 
     time_t start = clock();
@@ -179,38 +193,51 @@ int main(int argc, char **argv) {
         
 
         	
-        MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-        MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 1, newComm, MPI_STATUS_IGNORE);
-        MPI_Irecv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 2, newComm, MPI_STATUS_IGNORE);
-        MPI_Irecv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 3, newComm, MPI_STATUS_IGNORE);
+        MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, &requestDownRecv);
+        MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 1, newComm, &requestUpRecv);
+        MPI_Irecv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 2, newComm, &requestRightRecv);
+        MPI_Irecv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 3, newComm, &requestLeftRecv);
         
-        MPI_Irecv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 4, newComm, MPI_STATUS_IGNORE);
+        MPI_Irecv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 4, newComm, &requestBeforeRecv);
         
-        MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 5, newComm, MPI_STATUS_IGNORE);      
+        MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 5, newComm, &requestBehindRecv);      
 
         
-        MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
+        MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
         
         
-        MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm);
+        MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm, &requestDown);
             
         getCell(startLeft,endLeft,A,N, tempArray);
-        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm);
+        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm, &requestLeft);
         
         
         getCell(startRight,endRight,A,N,tempArray);
-        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm);
+        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm, &requestRight);
         
         getCell(startBehind,endBehind,A,N,tempArray);
-        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm);
+        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm, &requestBehind);
         
         
         getCell(startBefore,endBefore,A,N,tempArray);
-        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm);
+        MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm, &requestBefore);
         
     
      
-            
+        
+        MPI_Wait(&requestUp, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestDown, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestLeft, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestRight, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBehind, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBefore, MPI_STATUS_IGNORE);
+
+        MPI_Wait(&requestUpRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestDownRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestLeftRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestRightRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBehindRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBeforeRecv, MPI_STATUS_IGNORE);
         
 
 
