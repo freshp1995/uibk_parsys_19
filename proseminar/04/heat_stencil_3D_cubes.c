@@ -159,37 +159,72 @@ int main(int argc, char **argv) {
     time_t start = clock();
     //for each time step
 	for (int t = 0; t < T; t++) {
-		
 
-		MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
-		MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
+        int startLeft[3] = {0,0,0};
+        int endLeft[3] = {1,N,N};	
+
+        int startRight[3] = {N-1,0,0};
+        int endRight[3] = {N,N,N};	
+        
+        int startBehind[3] = {0,0,N-1};
+        int endBehind[3] = {N,N,N};
+
+        int startBefore[3] = {0,0,0};
+        int endBefore[3] = {N,N,1};
 		
-		int startLeft[3] = {0,0,0};
-		int endLeft[3] = {1,N,N};		
-		getCell(startLeft,endLeft,A,N, tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
-		
-		int startRight[3] = {N-1,0,0};
-		int endRight[3] = {N,N,N};	
-		getCell(startRight,endRight,A,N,tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm);
-		
-		int startBehind[3] = {0,0,N-1};
-		int endBehind[3] = {N,N,N};
-		getCell(startBehind,endBehind,A,N,tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm);
-		
-		int startBefore[3] = {0,0,0};
-		int endBefore[3] = {N,N,1};
-		getCell(startBefore,endBefore,A,N,tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm);
-		
-		MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
+        if (rank % 2 == 0) {
+            MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
+            MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
+            
+            	
+            getCell(startLeft,endLeft,A,N, tempArray);
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
+            
+            
+            getCell(startRight,endRight,A,N,tempArray);
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm);
+            
+            
+            getCell(startBehind,endBehind,A,N,tempArray);
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm);
+            
+            
+            getCell(startBefore,endBefore,A,N,tempArray);
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm);
+            
+            MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
+        } else {
+            MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+            
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm);
+            getCell(startBefore,endBefore,A,N,tempArray);
+            
+            
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm);
+            getCell(startBehind,endBehind,A,N,tempArray);
+            
+            
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm);
+            getCell(startRight,endRight,A,N,tempArray);
+            
+            
+            MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
+            getCell(startLeft,endLeft,A,N, tempArray);
+            	
+            
+            MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
+            MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
+        }
 
 
 
