@@ -28,7 +28,7 @@ void getCell(int* start,int* end, Matrix m, int size, Vector output);
 
 void insertCell(value_t **c, int y, int z, Matrix m, int size);
 
-void printVector (Vector m, int size);
+void printVector (Vector m, int size, int rank);
 	
 void printMatrix (Matrix m, int size);
 
@@ -62,11 +62,10 @@ int main(int argc, char **argv) {
 
 	int T = N_big * 500;
 	
-	//+4 because left and right behind before ghost cell
 	int N = (N_big/numProcs);
 	
-	Matrix A = createMatrix(N_big);
-	Matrix B = createMatrix(N_big);
+	Matrix A = createMatrix(N);
+	Matrix B = createMatrix(N);
 
 	//fill the array
 	int X = N_big / 4;
@@ -83,17 +82,6 @@ int main(int argc, char **argv) {
 
 	 
 		fill_Matrix(A_big, N_big, X, Y, Z);
-        //printMatrix(A, N_big);
-		
-
-		//printMatrix(A_big, N_big);
-        /*for(int j = 0; j < N_big; j++) {
-        for (int i = 0; i < N_big; i++) {
-            for (int k = 0; k < N_big; k++) {
-            printf("%f asfdsafsaf\n", A_big[i][j][k]);
-            }
-        }
-        }*/
 
 		//create a second buffer for the computation
 		Matrix B_big = createMatrix(N_big);
@@ -103,12 +91,8 @@ int main(int argc, char **argv) {
 			
 	
 			MPI_Send(&(A_big[i*N][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
-			//MPI_Send(&(B_big[0][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
-
-            //printf("Send to rank %d\n", i);
 				
 		}
-        //printMatrix(A, N_big);
 
 		releaseMatrix(A_big, N_big);
 		releaseMatrix(B_big,N_big);
@@ -117,28 +101,15 @@ int main(int argc, char **argv) {
 
     printf("Ready to receive data %d\n", rank);
 	MPI_Recv(&(A[0][0][0]), N*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    //MPI_Recv(&(B[0][0][0]), N*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    
+	    
     printf("Recive subarray size %d \n", (N_big)*(N_big)*(N_big));
     
-   
-    //TODO for testing
-    //fill_Matrix(A, N, X, Y, Z);
-
-    /*value_t *temp = &(A[0][0][0]);
-    for(int j = 0; j < N * N * N; j++) {
-            printf("%f asfdsafsaf\n", temp[j]);
-    }*/
 
     
     	
 	MPI_Comm newComm;
 	
     int dims[] = {cbrt(numProcs),cbrt(numProcs),cbrt(numProcs)};
-    
-    //int dims[3] = {0,0,0};
-
-	//MPI_Dims_create(numProcs, 3, dims);
     
     int periods[] = {1,1,1};
     int reorder = 1;
@@ -172,8 +143,6 @@ int main(int argc, char **argv) {
 		MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
 	
 
-		if(rank == 0 && t == 0)
-			printVector(ghost_up, N);
 
 
 
@@ -204,7 +173,6 @@ int main(int argc, char **argv) {
                                 t_right + t_below + 
                                 t_behind + t_before + ( -6 * tc )
                         );
-                    
                     //printf("%f --> x: %d y: %d z: %d\n", B[i][j][k] , j, i, k);
                 }
             }
@@ -351,13 +319,13 @@ free(m);
 }
 
 
-void printVector (Vector m, int size) {
+void printVector (Vector m, int size, int rank) {
 	
 	 for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-			printf("%f --> x: %d y: %d\n", m[i][j], j, i);
+			printf("%f --> x: %d y: %d rank: %d\n", m[i][j], j, i, rank);
 		}
-	}
+	} printf("%d rank finished\n", rank);
 	
 }
 
