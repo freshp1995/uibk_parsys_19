@@ -5,6 +5,7 @@ MPI=mpicc
 .PHONEY: all
 all: heat_stencil_3D_cubes
 all: heat_stencil_3D_slabs
+all: heat_stencil_3D_poles
 all: heat_stencil_3D_cubes_non_blocking
 
 heat_stencil_3D_cubes_non_blocking: heat_stencil_3D_cubes_non_blocking.c
@@ -16,11 +17,15 @@ heat_stencil_3D_cubes: heat_stencil_3D_cubes.c
 heat_stencil_3D_slabs: heat_stencil_3D_slabs.c
 	@$(MPI) $(CC_FLAGS) $< -o heat_stencil_3D_slabs
 
+heat_stencil_3D_poles: heat_stencil_3D_poles.c
+	@$(MPI) $(CC_FLAGS) $< -o heat_stencil_3D_poles
+
 
 .PHONEY: clean
 clean:
 	@rm heat_stencil_3D_cubes
 	@rm heat_stencil_3D_slabs
+	@rm heat_stencil_3D_poles
 	@rm heat_stencil_3D_cubes_non_blocking
 
 
@@ -31,6 +36,9 @@ run: all
 	@echo
 	@echo "slabs 3D:"
 	@./heat_stencil_3D_slabs
+	@echo
+	@echo
+	@./heat_stencil_3D_poles
 	@echo
 	@echo "cubes non blocking 3D:"
 	@./heat_stencil_3D_cubes_non_blocking
