@@ -82,11 +82,11 @@ int main(int argc, char **argv) {
 	//MPI_Dims_create(numProcs, 3, dims);
     
     int periods[] = {1,1,1};
-    int reorder = 1;
+    int reorder = 0;
     
     MPI_Cart_create(MPI_COMM_WORLD, 3, dims, periods, reorder, &newComm);
     
-	MPI_Comm_rank(newComm, &rank);
+	//MPI_Comm_rank(newComm, &rank);
 	
 	
 	if(rank == 0) {
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 		//printMatrix(A_big, N_big);
 		
 
-		for(int i = 0; i < numProcs; i++) {
+		for(int i = 1; i < numProcs; i++) {
 			
 			MPI_Datatype subArray;
 			int coords[3];
@@ -119,14 +119,23 @@ int main(int argc, char **argv) {
 				
 		}
 		
+		  for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                for (int k = 0; k < N; k++) {
+                    A[i][j][k] = A_big[i][j][k];
+                }
+            }
+        }
+		
 		releaseMatrix(A_big, N_big);
     
 	}
 
-	MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+	if(rank != 0) {
+		MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
     
-    printf("Recive subarray size %d \n", (N)*(N)*(N));
-    
+		printf("Recive subarray size %d \n", (N)*(N)*(N));
+	}
   
     
     
@@ -171,6 +180,7 @@ int main(int argc, char **argv) {
 
         int startBefore[3] = {0,0,0};
         int endBefore[3] = {N,N,1};
+        printf("here\n");
 		
         if (rank % 2 == 0) {
             MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
@@ -224,7 +234,7 @@ int main(int argc, char **argv) {
             
             MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
             MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
-        }
+        } printf("after\n");
 
 
 
