@@ -99,10 +99,6 @@ int main(int argc, char **argv) {
 		fill_Matrix(A_big, N_big, X, Y, Z);
 		
 		//printMatrix(A_big, N_big);
-
-		//create a second buffer for the computation
-		Matrix B_big = createMatrix(N_big);
-		
 		
 
 		for(int i = 0; i < numProcs; i++) {
@@ -116,35 +112,22 @@ int main(int argc, char **argv) {
 			int array_start[] = {coords[0]*array_subsize[0],coords[1]*array_subsize[1],coords[2]*array_subsize[2]}; 
 
 			printf("coords %d, %d, %d\n", array_start[0], array_start[1], array_start[2]);
-
-			MPI_Type_create_subarray(3, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_DOUBLE, &subArray);
-			MPI_Type_commit(&subArray);
 			
-			//MPI_Send(&(A_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
-			//MPI_Send(&(B_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
-
-			//MPI_Send(&(A_big[0][0][0]), 1, subArray, i, 0, newComm);
-			//MPI_Send(&(B_big[0][0][0]), 1, subArray, i, 0, newComm);
+			MPI_Send(&(A_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
 			
-			MPI_Type_free(&subArray);
+
 				
 		}
 		
 		releaseMatrix(A_big, N_big);
-		releaseMatrix(B_big,N_big);
     
 	}
 
-	//MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
-    //MPI_Recv(&(B[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
+	MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
     
     printf("Recive subarray size %d \n", (N)*(N)*(N));
     
-   
-    //TODO for testing
-    fill_Matrix(A, N, X, Y, Z);
-    //printMatrix(A, N);
-
+  
     
     
     Vector ghost_left = createVector(N);
@@ -168,12 +151,8 @@ int main(int argc, char **argv) {
 	
 	Vector tempArray = createVector(N);
 	
-	value_t* buffer = (double*)malloc(N * N * sizeof(double));
+	value_t* buffer = (value_t*)malloc(N * N * sizeof(value_t));
 	
-
-	 MPI_Datatype right_type;
-     MPI_Type_vector(N*N, 1, N, MPI_DOUBLE, &right_type);
-     MPI_Type_commit(&right_type);
 
 	
 	
@@ -181,21 +160,19 @@ int main(int argc, char **argv) {
     //for each time step
 	for (int t = 0; t < T; t++) {
 		
-		if(rank == 0 && t == 0)
-			//printMatrix(A, N);
-		MPI_Send(A, N*N, MPI_DOUBLE, up_rank, 0, newComm);
+
+		MPI_Send(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm);
 		MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
 		
 		int startLeft[3] = {0,0,0};
 		int endLeft[3] = {1,N,N};		
-		
 		getCell(startLeft,endLeft,A,N, tempArray);
 		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
+		
 		int startRight[3] = {N-1,0,0};
 		int endRight[3] = {N,N,N};	
 		getCell(startRight,endRight,A,N,tempArray);
-		storeInBuffer(tempArray, buffer, N);
-		MPI_Send(A, 1, right_type, right_rank, 0, newComm);
+		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm);
 		
 		int startBehind[3] = {0,0,N-1};
 		int endBehind[3] = {N,N,N};
@@ -213,9 +190,6 @@ int main(int argc, char **argv) {
 		MPI_Recv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
-
-		if(rank == 0 && t == 0)
-			printVector(ghost_right, N);
 
 
 
@@ -280,6 +254,12 @@ int main(int argc, char **argv) {
 }
 
 Matrix createMatrix(int N) {
+    value_t *data = (value_t *)malloc(sizeof(value_t) * N * N * N);
+    if (data == NULL) {
+        perror("Could not allocate memory");
+        return NULL;
+    }
+
     Matrix y = malloc(sizeof(value_t) * N);
 
     if (y == NULL) {
@@ -296,12 +276,7 @@ Matrix createMatrix(int N) {
         }
 
         for (int j = 0; j < N; j++) {
-            y[i][j] = malloc(sizeof(value_t) * N);
-
-            if (y[i][j] == NULL) {
-                perror("Could not allocate memory");
-                return NULL;
-            }
+            y[i][j] = &(data[N * (i * (int)pow(N, 1) + j * (int)pow(N, 0))]);
         }
     }
 
@@ -310,10 +285,9 @@ Matrix createMatrix(int N) {
 
 void releaseMatrix(Matrix m, int size) {
 
+    free(m[0][0]);
+
     for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            free(m[i][j]);
-        }
         free(m[i]);
     }
 
@@ -379,33 +353,17 @@ void getCell(int* start, int* end, Matrix m, int size, Vector output) {
 
 
 Vector createVector(int N) {
-    Vector y = malloc(sizeof(value_t) * N);
+   value_t *data = (value_t *)malloc(N*N*sizeof(value_t));
+    Vector array= (int **)malloc(N*sizeof(value_t*));
+    for (int i=0; i<N; i++)
+        array[i] = &(data[N*i]);
 
-    if (y == NULL) {
-        perror("Could not allocate memory");
-        return NULL;
-    }
-
-    for (int i = 0; i < N; i++) {
-        y[i] = malloc(sizeof(value_t) * N);
-
-        if (y[i] == NULL) {
-            perror("Could not allocate memory");
-            return NULL;
-        }
-
-        
-    }
-
-    return y;
+    return array;
 }
 
 void releaseVector(Vector m, int size) {
-    for (int i = 0; i < size; i++) {
-        free(m[i]);
-    }
-
-    free(m);
+free(m[0]);
+free(m);
 }
 
 
@@ -429,14 +387,4 @@ void printMatrix (Matrix m, int size) {
 		}
 	}
 	
-}
-
-void storeInBuffer(Vector v, value_t* b, int size) {
-	int n = 0;
-	for (int i = 0; i < size; i++) {
-		for(int j = 0; j < size; j++) {
-			b[n] = v[i][j];
-			n++;
-		}
-  }
 }
