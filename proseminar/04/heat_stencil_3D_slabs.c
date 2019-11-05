@@ -83,8 +83,17 @@ int main(int argc, char **argv) {
 
 	 
 		fill_Matrix(A_big, N_big, X, Y, Z);
+        //printMatrix(A, N_big);
 		
+
 		//printMatrix(A_big, N_big);
+        /*for(int j = 0; j < N_big; j++) {
+        for (int i = 0; i < N_big; i++) {
+            for (int k = 0; k < N_big; k++) {
+            printf("%f asfdsafsaf\n", A_big[i][j][k]);
+            }
+        }
+        }*/
 
 		//create a second buffer for the computation
 		Matrix B_big = createMatrix(N_big);
@@ -99,6 +108,7 @@ int main(int argc, char **argv) {
             //printf("Send to rank %d\n", i);
 				
 		}
+        //printMatrix(A, N_big);
 
 		releaseMatrix(A_big, N_big);
 		releaseMatrix(B_big,N_big);
@@ -114,7 +124,12 @@ int main(int argc, char **argv) {
    
     //TODO for testing
     //fill_Matrix(A, N, X, Y, Z);
-    printMatrix(A, N_big);
+    if (rank == 2) {
+    value_t *temp = &(A[0][0][0]);
+    for(int j = 0; j < N * N * N; j++) {
+            printf("%f asfdsafsaf\n", temp[j]);
+    }
+}
 
     
     	/*
@@ -312,12 +327,15 @@ void fill_Matrix(Matrix m, int size, int x, int y, int z) {
         return;
     }
 
-    value_t *start = &(m[0][0][0]);
-    for (int i = 0; i < (size * size * size); i++) {      
-        start[i] = i;
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            for (int k = 0; k < size; k++) {
+                m[i][j][k] = 273.0;
+            }
+        }
     }
 
-    //m[y][x][z] = 273.0 + 60.0;
+    m[0][0][0] = 273.0 + 60.0;
 
 }
 
