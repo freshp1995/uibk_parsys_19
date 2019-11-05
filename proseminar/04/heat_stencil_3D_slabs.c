@@ -144,12 +144,23 @@ int main(int argc, char **argv) {
 	for (int t = 0; t < T; t++) {
 		
 
-		MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 1, newComm);
-		MPI_Send(&(A[N-1][0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm);
-		
-		
-		MPI_Recv(&(ghost_up[0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 1, newComm, MPI_STATUS_IGNORE);
+        if (rank % 2 == 0) {
+            MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 1, newComm);
+            MPI_Send(&(A[N-1][0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm);
+            
+            
+            MPI_Recv(&(ghost_up[0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 1, newComm, MPI_STATUS_IGNORE);
+        } else {
+
+            MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 1, newComm, MPI_STATUS_IGNORE);
+            MPI_Recv(&(ghost_up[0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+            
+
+            MPI_Send(&(A[N-1][0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm);
+            MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 1, newComm);
+           
+        }
 	
 
 
