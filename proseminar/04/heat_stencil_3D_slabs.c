@@ -12,6 +12,8 @@ typedef value_t ***Matrix;
 
 typedef value_t **Vector;
 
+Matrix createSlabMatrix(int height, int N);
+
 Matrix createMatrix(int N);
 
 Vector createVector(int N);
@@ -64,8 +66,9 @@ int main(int argc, char **argv) {
 	
 	int N = (N_big/numProcs);
 	
-	Matrix A = createMatrix(N);
-	Matrix B = createMatrix(N);
+	Matrix A = createSlabMatrix(N, N_big);
+	Matrix B = createSlabMatrix(N, N_big);
+
 
 	//fill the array
 	int X = N_big / 4;
@@ -90,7 +93,7 @@ int main(int argc, char **argv) {
 		for(int i = 0; i < numProcs; i++) {
 			
 	
-			MPI_Send(&(A_big[i*N][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
+			MPI_Send(&(A_big[i*N][0][0]), N_big*N_big*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
 				
 		}
 
@@ -100,9 +103,9 @@ int main(int argc, char **argv) {
 	}
 
     printf("Ready to receive data %d\n", rank);
-	MPI_Recv(&(A[0][0][0]), N*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	MPI_Recv(&(A[0][0][0]), N_big*N_big*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	    
-    printf("Recive subarray size %d \n", (N_big)*(N_big)*(N_big));
+    printf("Recive subarray size %d \n", (N_big)*(N_big)*(N));
     
 
     
@@ -135,12 +138,12 @@ int main(int argc, char **argv) {
 	for (int t = 0; t < T; t++) {
 		
 
-		MPI_Send(&(A[0][0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm);
-		MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
+		MPI_Send(&(A[0][0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm);
+		MPI_Send(&(A[N-1][0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm);
 		
 		
-		MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_up[0][0]), N_big*N_big, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
+		MPI_Recv(&(ghost_down[0][0]), N_big*N_big, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
 	
 
 
@@ -229,6 +232,36 @@ Matrix createMatrix(int N) {
 
         for (int j = 0; j < N; j++) {
             y[i][j] = &(data[N * (i * (int)pow(N, 1) + j * (int)pow(N, 0))]);
+        }
+    }
+
+    return y;
+}
+
+Matrix createSlabMatrix(int height, int N) {
+    value_t *data = (value_t *)malloc(sizeof(value_t) * height * N * N);
+    if (data == NULL) {
+        perror("Could not allocate memory");
+        return NULL;
+    }
+
+    Matrix y = malloc(sizeof(value_t) * height);
+
+    if (y == NULL) {
+        perror("Could not allocate memory");
+        return NULL;
+    }
+
+    for (int i = 0; i < height; i++) {
+        y[i] = malloc(sizeof(value_t) * N);
+
+        if (y[i] == NULL) {
+            perror("Could not allocate memory");
+            return NULL;
+        }
+
+        for (int j = 0; j < N; j++) {
+            y[i][j] = &(data[N * (i * (int)pow(N, 1) + j * (int)pow(height, 0))]);
         }
     }
 
