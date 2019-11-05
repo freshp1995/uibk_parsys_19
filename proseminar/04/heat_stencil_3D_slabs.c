@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
 	for (int t = 0; t < T; t++) {
 		
 
-		MPI_Send(&(A[0][0][0]), N*N, MPI_DOUBLE, up_rank, 0, MPI_Comm);
+		MPI_Send(&(A[0][0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm);
 		MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
 		
 		
