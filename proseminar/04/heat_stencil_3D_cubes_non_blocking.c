@@ -170,6 +170,13 @@ int main(int argc, char **argv) {
 	MPI_Request requestDown;
 	MPI_Request requestBehind;
 	MPI_Request requestBefore;
+	
+	MPI_Request requestLeftS;
+	MPI_Request requestRightS;
+	MPI_Request requestUpS;
+	MPI_Request requestDownS;
+	MPI_Request requestBehindS;
+	MPI_Request requestBeforeS;
 
 	
 	
@@ -178,28 +185,28 @@ int main(int argc, char **argv) {
 	for (int t = 0; t < T; t++) {
 		
 
-		MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
-		MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm,&requestDown);
+		MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUpS);
+		MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm,&requestDownS);
 		
 		int startLeft[3] = {0,0,0};
 		int endLeft[3] = {1,N,N};		
 		getCell(startLeft,endLeft,A,N, tempArray);
-		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm,&requestLeft);
+		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm,&requestLeftS);
 		
 		int startRight[3] = {N-1,0,0};
 		int endRight[3] = {N,N,N};	
 		getCell(startRight,endRight,A,N,tempArray);
-		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm,&requestRight);
+		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm,&requestRightS);
 		
 		int startBehind[3] = {0,0,N-1};
 		int endBehind[3] = {N,N,N};
 		getCell(startBehind,endBehind,A,N,tempArray);
-		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm,&requestBehind);
+		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm,&requestBehindS);
 		
 		int startBefore[3] = {0,0,0};
 		int endBefore[3] = {N,N,1};
 		getCell(startBefore,endBefore,A,N,tempArray);
-		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm,&requestBefore);
+		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm,&requestBeforeS);
 		
 		MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
 		MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm, &requestDown);
