@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 		for(int i = 0; i < numProcs; i++) {
 			
 	
-			MPI_Send(&(A_big[0][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
+			MPI_Send(&(A_big[i*N][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
 			//MPI_Send(&(B_big[0][0][0]), N*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
 
             //printf("Send to rank %d\n", i);
@@ -124,15 +124,14 @@ int main(int argc, char **argv) {
    
     //TODO for testing
     //fill_Matrix(A, N, X, Y, Z);
-    if (rank == 2) {
-    value_t *temp = &(A[0][0][0]);
+
+    /*value_t *temp = &(A[0][0][0]);
     for(int j = 0; j < N * N * N; j++) {
             printf("%f asfdsafsaf\n", temp[j]);
-    }
-}
+    }*/
 
     
-    	/*
+    	
 	MPI_Comm newComm;
 	
     int dims[] = {cbrt(numProcs),cbrt(numProcs),cbrt(numProcs)};
@@ -149,75 +148,32 @@ int main(int argc, char **argv) {
 	MPI_Comm_rank(newComm, &rank);
     
     
-    Vector ghost_left = createVector(N);
-    Vector ghost_right = createVector(N);
     Vector ghost_up = createVector(N);
     Vector ghost_down = createVector(N);
-    Vector ghost_behind = createVector(N);
-    Vector ghost_before = createVector(N);
     
    
     
-	int left_rank;
-	int right_rank;
+
 	int up_rank;
 	int down_rank;
-	int behind_rank;
-	int before_rank;
-	MPI_Cart_shift(newComm, 0, 1, &left_rank, &right_rank);
 	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
-	MPI_Cart_shift(newComm, 2, 1, &before_rank, &behind_rank);
-	
-	Vector tempArray = createVector(N);
-	
-	value_t* buffer = (double*)malloc(N * N * sizeof(double));
-	
 
-	 MPI_Datatype right_type;
-     MPI_Type_vector(N*N, 1, N, MPI_DOUBLE, &right_type);
-     MPI_Type_commit(&right_type);
 
-	
-	
     time_t start = clock();
     //for each time step
 	for (int t = 0; t < T; t++) {
 		
-		if(rank == 0 && t == 0)
-			//printMatrix(A, N);
-		MPI_Send(A, N*N, MPI_DOUBLE, up_rank, 0, newComm);
+
+		MPI_Send(&(A[0][0][0]), N*N, MPI_DOUBLE, up_rank, 0, MPI_Comm);
 		MPI_Send(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm);
 		
-		int startLeft[3] = {0,0,0};
-		int endLeft[3] = {1,N,N};		
-		
-		getCell(startLeft,endLeft,A,N, tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm);
-		int startRight[3] = {N-1,0,0};
-		int endRight[3] = {N,N,N};	
-		getCell(startRight,endRight,A,N,tempArray);
-		storeInBuffer(tempArray, buffer, N);
-		MPI_Send(A, 1, right_type, right_rank, 0, newComm);
-		
-		int startBehind[3] = {0,0,N-1};
-		int endBehind[3] = {N,N,N};
-		getCell(startBehind,endBehind,A,N,tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm);
-		
-		int startBefore[3] = {0,0,0};
-		int endBefore[3] = {N,N,1};
-		getCell(startBefore,endBefore,A,N,tempArray);
-		MPI_Send(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm);
 		
 		MPI_Recv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
 		MPI_Recv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 0, newComm, MPI_STATUS_IGNORE);
+	
 
 		if(rank == 0 && t == 0)
-			printVector(ghost_right, N);
+			printVector(ghost_up, N);
 
 
 
@@ -235,11 +191,11 @@ int main(int argc, char **argv) {
 
 
                     //get temperatur of adjacent cells
-                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : ghost_behind[i][j];
-                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : ghost_before[i][j];
+                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : tc;
+                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : tc;
                     value_t t_above = (i != 0) ? A[i - 1][j][k] : ghost_up[j][k];
-					value_t t_left = (j != 0) ? A[i][j - 1][k] : ghost_left[i][k];
-					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : ghost_right[i][k];
+					value_t t_left = (j != 0) ? A[i][j - 1][k] : tc;
+					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : tc;
 					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : ghost_down[j][k];
 
 
@@ -277,7 +233,7 @@ int main(int argc, char **argv) {
 
     //release the Matrix again
     releaseMatrix(A, N);
-    */
+    
      MPI_Finalize();
 }
 
@@ -381,31 +337,17 @@ void getCell(int* start, int* end, Matrix m, int size, Vector output) {
 
 
 Vector createVector(int N) {
-    Vector y = malloc(sizeof(value_t) * N);
+   value_t *data = (value_t *)malloc(N*N*sizeof(value_t));
+    Vector array= (int **)malloc(N*sizeof(value_t*));
+    for (int i=0; i<N; i++)
+        array[i] = &(data[N*i]);
 
-    if (y == NULL) {
-        perror("Could not allocate memory");
-        return NULL;
-    }
-
-    for (int i = 0; i < N; i++) {
-        y[i] = malloc(sizeof(value_t) * N);
-
-        if (y[i] == NULL) {
-            perror("Could not allocate memory");
-            return NULL;
-        }
-    }
-
-    return y;
+    return array;
 }
 
 void releaseVector(Vector m, int size) {
-    for (int i = 0; i < size; i++) {
-        free(m[i]);
-    }
-
-    free(m);
+free(m[0]);
+free(m);
 }
 
 
