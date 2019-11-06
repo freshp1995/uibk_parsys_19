@@ -32,7 +32,7 @@ void printVector (Vector m, int size);
 	
 void printMatrix (Matrix m, int size);
 
-value_t getGhostCell(Vector cell, int x, int y, MPI_Request request);
+value_t getGhostCell(Vector cell, int x, int y, MPI_Request request, MPI_Request send_request);
 
 // -- simulation code ---
 long timediff(clock_t t1, clock_t t2) {
@@ -216,6 +216,12 @@ int main(int argc, char **argv) {
 		MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm, &requestBehind);
 
 
+        MPI_Wait(&requestUpS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestDownS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestLeftS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestRightS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBehindS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBeforeS, MPI_STATUS_IGNORE);
 
         //we propagate the temparature
         for (long long i = 0; i < N; i++) {
@@ -231,12 +237,12 @@ int main(int argc, char **argv) {
 
 
                     //get temperatur of adjacent cells
-                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : getGhostCell(ghost_behind, i, j,requestBehind);
-                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : getGhostCell(ghost_before,i, j,requestBefore);
-                    value_t t_above = (i != 0) ? A[i - 1][j][k] : getGhostCell(ghost_up, j, k,requestUp);
-					value_t t_left = (j != 0) ? A[i][j - 1][k] : getGhostCell(ghost_left, i, k,requestLeft);
-					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : getGhostCell(ghost_right, i, k,requestRight);
-					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : getGhostCell(ghost_down, j, k,requestDown);
+                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : getGhostCell(ghost_behind, i, j,requestBehind, requestBehindS);
+                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : getGhostCell(ghost_before,i, j,requestBefore,requestBeforeS);
+                    value_t t_above = (i != 0) ? A[i - 1][j][k] : getGhostCell(ghost_up, j, k,requestUp,requestUpS);
+					value_t t_left = (j != 0) ? A[i][j - 1][k] : getGhostCell(ghost_left, i, k,requestLeft,requestLeftS);
+					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : getGhostCell(ghost_right, i, k,requestRight,requestRightS);
+					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : getGhostCell(ghost_down, j, k,requestDown,requestDownS);
 
 
                     B[i][j][k] = tc + 0.1 * (
@@ -422,9 +428,10 @@ void printMatrix (Matrix m, int size) {
 }
 
 
-value_t getGhostCell(Vector cell, int x, int y,MPI_Request request) {
+value_t getGhostCell(Vector cell, int x, int y,MPI_Request request, MPI_Request send_request) {
 	
 	if(cell[x][y] == 0) {
+		//MPI_Wait(&send_request, MPI_STATUS_IGNORE);
 		MPI_Wait(&request, MPI_STATUS_IGNORE);
 	}
 	return cell[x][y];
