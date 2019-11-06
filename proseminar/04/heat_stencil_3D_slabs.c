@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 		
 	if(roundf(N_big/numProcs) != (N_big/numProcs)) {
-		printf("Cubic root of rank size must be a natural number\n");
+		printf("Rank size must be divisable by the array size\n");
 		MPI_Finalize();
 		return EXIT_FAILURE;
 	}
