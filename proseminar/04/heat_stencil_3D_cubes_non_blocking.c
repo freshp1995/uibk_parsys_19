@@ -139,15 +139,7 @@ int main(int argc, char **argv) {
 		printf("Recive subarray size %d \n", (N)*(N)*(N));
 	}
   
-    
-    
-    Vector ghost_left = createVector(N);
-    Vector ghost_right = createVector(N);
-    Vector ghost_up = createVector(N);
-    Vector ghost_down = createVector(N);
-    Vector ghost_behind = createVector(N);
-    Vector ghost_before = createVector(N);
-    
+       
    
     
 	int left_rank;
@@ -160,7 +152,13 @@ int main(int argc, char **argv) {
 	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
 	MPI_Cart_shift(newComm, 2, 1, &before_rank, &behind_rank);
 	
-	Vector tempArray = createVector(N);
+	Vector tempArrayLeft = createVector(N);
+	Vector tempArrayRight = createVector(N);
+	Vector tempArrayBehind = createVector(N);
+	Vector tempArrayBefore = createVector(N);
+
+
+	
 	
 	value_t* buffer = (value_t*)malloc(N * N * sizeof(value_t));
 	
@@ -171,12 +169,13 @@ int main(int argc, char **argv) {
 	MPI_Request requestBehind;
 	MPI_Request requestBefore;
 	
-	MPI_Request requestLeftS;
-	MPI_Request requestRightS;
-	MPI_Request requestUpS;
-	MPI_Request requestDownS;
-	MPI_Request requestBehindS;
-	MPI_Request requestBeforeS;
+	MPI_Request requestLeftRecv;
+	MPI_Request requestRightRecv;
+	MPI_Request requestUpRecv;
+	MPI_Request requestDownRecv;
+	MPI_Request requestBehindRecv;
+	MPI_Request requestBeforeRecv;
+	
 
 	
 	
@@ -184,7 +183,7 @@ int main(int argc, char **argv) {
     //for each time step
 	for (int t = 0; t < T; t++) {
 		
-
+/*
 		MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUpS);
 		MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm,&requestDownS);
 		
@@ -208,20 +207,90 @@ int main(int argc, char **argv) {
 		getCell(startBefore,endBefore,A,N,tempArray);
 		MPI_Isend(&(tempArray[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm,&requestBeforeS);
 		
-		MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
-		MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm, &requestDown);
-		MPI_Irecv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm, &requestLeft);
-		MPI_Irecv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm, &requestRight);
-		MPI_Irecv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm, &requestBefore);
-		MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm, &requestBehind);
-
-
-        MPI_Wait(&requestUpS, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestUpS, MPI_STATUS_IGNORE);
 		MPI_Wait(&requestDownS, MPI_STATUS_IGNORE);
 		MPI_Wait(&requestLeftS, MPI_STATUS_IGNORE);
 		MPI_Wait(&requestRightS, MPI_STATUS_IGNORE);
 		MPI_Wait(&requestBehindS, MPI_STATUS_IGNORE);
 		MPI_Wait(&requestBeforeS, MPI_STATUS_IGNORE);
+		
+		MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
+		MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm, &requestDown);
+		MPI_Irecv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm, &requestLeft);
+		MPI_Irecv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm, &requestRight);
+		MPI_Irecv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm, &requestBefore);
+		MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm, &requestBehind);*/
+		
+		Vector ghost_left = createVector(N);
+		Vector ghost_right = createVector(N);
+		Vector ghost_up = createVector(N);
+		Vector ghost_down = createVector(N);
+		Vector ghost_behind = createVector(N);
+		Vector ghost_before = createVector(N);
+			
+		int startLeft[3] = {0,0,0};
+        int endLeft[3] = {1,N,N};	
+
+        int startRight[3] = {N-1,0,0};
+        int endRight[3] = {N,N,N};	
+        
+        int startBehind[3] = {0,0,N-1};
+        int endBehind[3] = {N,N,N};
+
+        int startBefore[3] = {0,0,0};
+        int endBefore[3] = {N,N,1};
+		
+		MPI_Irecv(&(ghost_down[0][0]), N*N, MPI_DOUBLE, down_rank, 0, newComm, &requestDownRecv);
+        MPI_Irecv(&(ghost_up[0][0]), N*N, MPI_DOUBLE, up_rank, 1, newComm, &requestUpRecv);
+        MPI_Irecv(&(ghost_right[0][0]), N*N, MPI_DOUBLE, right_rank, 2, newComm, &requestRightRecv);
+        MPI_Irecv(&(ghost_left[0][0]), N*N, MPI_DOUBLE, left_rank, 3, newComm, &requestLeftRecv);
+        
+        MPI_Irecv(&(ghost_before[0][0]), N*N, MPI_DOUBLE, before_rank, 4, newComm, &requestBeforeRecv);
+        
+        MPI_Irecv(&(ghost_behind[0][0]), N*N, MPI_DOUBLE, behind_rank, 5, newComm, &requestBehindRecv);      
+
+        
+        MPI_Isend(&A[0][0][0], N*N, MPI_DOUBLE, up_rank, 0, newComm, &requestUp);
+        
+        
+        MPI_Isend(&(A[N-1][0][0]), N*N, MPI_DOUBLE, down_rank, 1, newComm, &requestDown);
+            
+        getCell(startLeft,endLeft,A,N, tempArrayLeft);
+        MPI_Isend(&(tempArrayLeft[0][0]), N*N, MPI_DOUBLE, left_rank, 2, newComm, &requestLeft);
+        
+        
+        getCell(startRight,endRight,A,N,tempArrayRight);
+        MPI_Isend(&(tempArrayRight[0][0]), N*N, MPI_DOUBLE, right_rank, 3, newComm, &requestRight);
+        
+        getCell(startBehind,endBehind,A,N,tempArrayBehind);
+        MPI_Isend(&(tempArrayBehind[0][0]), N*N, MPI_DOUBLE, behind_rank, 4, newComm, &requestBehind);
+        
+        
+        getCell(startBefore,endBefore,A,N,tempArrayBefore);
+        MPI_Isend(&(tempArrayBefore[0][0]), N*N, MPI_DOUBLE, before_rank, 5, newComm, &requestBefore);
+        
+    
+     
+       
+		/*MPI_Wait(&requestUp, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestDown, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestLeft, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestRight, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBehind, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBefore, MPI_STATUS_IGNORE);*/
+
+/*
+        MPI_Wait(&requestUpRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestDownRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestLeftRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestRightRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBehindRecv, MPI_STATUS_IGNORE);
+		MPI_Wait(&requestBeforeRecv, MPI_STATUS_IGNORE);
+      */
+      
+
+
+
 
         //we propagate the temparature
         for (long long i = 0; i < N; i++) {
@@ -237,12 +306,12 @@ int main(int argc, char **argv) {
 
 
                     //get temperatur of adjacent cells
-                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : getGhostCell(ghost_behind, i, j,requestBehind, requestBehindS);
-                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : getGhostCell(ghost_before,i, j,requestBefore,requestBeforeS);
-                    value_t t_above = (i != 0) ? A[i - 1][j][k] : getGhostCell(ghost_up, j, k,requestUp,requestUpS);
-					value_t t_left = (j != 0) ? A[i][j - 1][k] : getGhostCell(ghost_left, i, k,requestLeft,requestLeftS);
-					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : getGhostCell(ghost_right, i, k,requestRight,requestRightS);
-					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : getGhostCell(ghost_down, j, k,requestDown,requestDownS);
+                    value_t t_behind = (k != 0) ? A[i][j][k - 1] : getGhostCell(ghost_behind, i, j,requestBehindRecv, requestBehind);
+                    value_t t_before = (k != N - 1) ? A[i][j][k + 1] : getGhostCell(ghost_before,i, j,requestBeforeRecv,requestBefore);
+                    value_t t_above = (i != 0) ? A[i - 1][j][k] : getGhostCell(ghost_up, j, k,requestUpRecv,requestUp);
+					value_t t_left = (j != 0) ? A[i][j - 1][k] : getGhostCell(ghost_left, i, k,requestLeftRecv,requestLeft);
+					value_t t_right = (j != N - 1) ? A[i][j + 1][k] : getGhostCell(ghost_right, i, k,requestRightRecv,requestRight);
+					value_t t_below = (i != N - 1) ? A[i + 1][j][k] : getGhostCell(ghost_down, j, k,requestDownRecv,requestDown);
 
 
                     B[i][j][k] = tc + 0.1 * (
@@ -256,12 +325,7 @@ int main(int argc, char **argv) {
             }
         }
         
-		MPI_Wait(&requestUp, MPI_STATUS_IGNORE);
-		MPI_Wait(&requestDown, MPI_STATUS_IGNORE);
-		MPI_Wait(&requestLeft, MPI_STATUS_IGNORE);
-		MPI_Wait(&requestRight, MPI_STATUS_IGNORE);
-		MPI_Wait(&requestBehind, MPI_STATUS_IGNORE);
-		MPI_Wait(&requestBefore, MPI_STATUS_IGNORE);
+        
 
 
         Matrix H = A;
@@ -431,8 +495,10 @@ void printMatrix (Matrix m, int size) {
 value_t getGhostCell(Vector cell, int x, int y,MPI_Request request, MPI_Request send_request) {
 	
 	if(cell[x][y] == 0) {
-		//MPI_Wait(&send_request, MPI_STATUS_IGNORE);
+		//printf("%f before cell\n",cell[x][y]);
+		MPI_Wait(&send_request, MPI_STATUS_IGNORE);
 		MPI_Wait(&request, MPI_STATUS_IGNORE);
+		//printf("%f cell\n",cell[x][y]);
 	}
 	return cell[x][y];
 
