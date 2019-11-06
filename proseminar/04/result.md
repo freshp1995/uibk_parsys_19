@@ -16,7 +16,7 @@ Unfortunately the poles version is not working correctly.
 #### Measure their speedup and efficiency for multiple problem and machine sizes as in the previous exercise.
 #### Illustrate the data in appropriate figures and discuss them. What can you observe?
 
-![Image]slabs.png) 
+![Image](slabs.png) 
 
 ![Image](poles.png) 
 
