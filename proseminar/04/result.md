@@ -2,7 +2,7 @@
 
 The goal of this assignment is to extend the 3D heat stencil application of Assignment 3 to include multiple domain decomposition schemes and investigate the effect of non-blocking communication.
 
-Group members: Raphael Gruber, Patrick Lanzinger
+Group members: Raphael Gruber, Patrick Lanzinger, Geni Bushati
 
 ## Exercise 1
 
