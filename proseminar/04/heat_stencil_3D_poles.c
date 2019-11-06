@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, reorder, &newComm);
 	
 	if(rank == 0) {
-		printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
+		//printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
 
 		//create a buffer
 		Matrix A_big = createMatrix(N_big);
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 			int array_subsize[] = {N,N};
 			int array_start[] = {coords[0]*array_subsize[0],coords[1]*array_subsize[1]}; 
 
-			printf("coords %d, %d\n", array_start[0], array_start[1]);
+			//printf("coords %d, %d\n", array_start[0], array_start[1]);
 			
 	
 			MPI_Send(&(A_big[array_start[0]][array_start[1]][0]), N_big*N*N, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
@@ -129,9 +129,9 @@ int main(int argc, char **argv) {
     
 
     if (rank != 0) {
-        printf("Ready to receive data %d\n", rank);
+       // printf("Ready to receive data %d\n", rank);
 	    MPI_Recv(&(A[0][0][0]), N_big*N*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        printf("Recive subarray size %d \n", (N_big)*(N)*(N));
+       // printf("Recive subarray size %d \n", (N_big)*(N)*(N));
     }
     
 	//MPI_Comm_rank(newComm, &rank);
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
 
     time_t start = clock();
     //for each time step
-    printf("Begin to calculate--------\n");
+    //printf("Begin to calculate--------\n");
 	for (int t = 0; t < T; t++) {
 		
         int startLeft[3] = {0,0,0};
@@ -256,11 +256,11 @@ int main(int argc, char **argv) {
 
 		if(rank == 0) {
 			if (!(t % 1000)) {
-				printf("Current timestamp t=%d\n", t);
+				//printf("Current timestamp t=%d\n", t);
                   for (int i = 0; i < N; i++) {
                     for (int j = 0; j < N; j++) {
                         for (int k = 0; k < N_big; k++) {
-                            printf("%f --> \n", A[i][j][k]);
+                  //          printf("%f --> \n", A[i][j][k]);
                         }
                     }
                 }
@@ -272,11 +272,13 @@ int main(int argc, char **argv) {
 
     releaseMatrix(B, N);
 
-    printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+   // printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
 
 	if(rank == 0) {
 		long elapsed = timediff(start, stop);
-		printf("elapsed: %ld ms\n", elapsed);
+		//printf("elapsed: %ld ms\n", elapsed);
+		printf("%d;%d;%ld\n", numProcs, N_big, elapsed);
+
 	}
 
     //release the Matrix again

@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 	
 	
 	if(rank == 0) {
-		printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
+		//printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
 
 		//create a buffer
 		Matrix A_big = createMatrix(N_big);
@@ -108,9 +108,9 @@ int main(int argc, char **argv) {
     
 
     if (rank != 0) {
-        printf("Ready to receive data %d\n", rank);
+       // printf("Ready to receive data %d\n", rank);
 	    MPI_Recv(&(A[0][0][0]), N_big*N_big*N, MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        printf("Recive subarray size %d \n", (N_big)*(N_big)*(N));
+        //printf("Recive subarray size %d \n", (N_big)*(N_big)*(N));
     }
 
     
@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
 
     time_t start = clock();
     //for each time step
-    printf("Begin to calculate--------");
+    //printf("Begin to calculate--------");
 	for (int t = 0; t < T; t++) {
 		
 
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
 
 		if(rank == 0) {
 			if (!(t % 10)) {
-				printf("Current timestamp t=%d\n", t);
+				//printf("Current timestamp t=%d\n", t);
 			}
 		}
     }
@@ -212,11 +212,13 @@ int main(int argc, char **argv) {
 
     releaseMatrix(B, N);
 
-    printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+  //  printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
 
 	if(rank == 0) {
 		long elapsed = timediff(start, stop);
-		printf("elapsed: %ld ms\n", elapsed);
+		//printf("elapsed: %ld ms\n", elapsed);
+		printf("%d;%d;%ld\n", numProcs, N_big, elapsed);
+
 	}
 
     //release the Matrix again

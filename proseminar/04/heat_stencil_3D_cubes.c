@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 		
 	if(roundf(cbrt(numProcs)) != cbrt(numProcs)) {
-		printf("Cubic root of rank size must be a natural number\n");
+		//printf("Cubic root of rank size must be a natural number\n");
 		MPI_Finalize();
 		return EXIT_FAILURE;
 	}
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 	
 	
 	if(rank == 0) {
-		printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
+		//printf("Computing heat-distribution for romm size %dx%dx%d for %d timestamps\n", N_big, N_big, N_big, T);
 
 		//create a buffer
 		Matrix A_big = createMatrix(N_big);
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
 			int array_subsize[] = {N,N,N};
 			int array_start[] = {coords[0]*array_subsize[0],coords[1]*array_subsize[1],coords[2]*array_subsize[2]}; 
 
-			printf("coords %d, %d, %d\n", array_start[0], array_start[1], array_start[2]);
+			//printf("coords %d, %d, %d\n", array_start[0], array_start[1], array_start[2]);
 			
 			MPI_Send(&(A_big[array_start[0]][array_start[1]][array_start[2]]), N*N*N, MPI_DOUBLE, i, 0, newComm);
 			
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
 	if(rank != 0) {
 		MPI_Recv(&(A[0][0][0]), (N)*(N)*(N), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
     
-		printf("Recive subarray size %d %d\n", (N)*(N)*(N), rank);
+		//printf("Recive subarray size %d %d\n", (N)*(N)*(N), rank);
 	}
     
     Vector ghost_left = createVector(N);
@@ -279,7 +279,7 @@ int main(int argc, char **argv) {
 
 		if(rank == 0) {
 			if (!(t % 1000)) {
-				printf("Current timestamp t=%d\n", t);
+				//printf("Current timestamp t=%d\n", t);
 			}
 		}
     }
@@ -287,11 +287,12 @@ int main(int argc, char **argv) {
 
     releaseMatrix(B, N);
 
-    printf("Verification: %s rank: %d\n", (verify(A, N)) ? "OK" : "FAILED", rank);
+    //printf("Verification: %s rank: %d\n", (verify(A, N)) ? "OK" : "FAILED", rank);
 
 	if(rank == 0) {
 		long elapsed = timediff(start, stop);
-		printf("elapsed: %ld ms\n", elapsed);
+		//printf("elapsed: %ld ms\n", elapsed);
+		printf("%d;%d;%ld\n", numProcs, N_big, elapsed);
 	}
 
     //release the Matrix again
