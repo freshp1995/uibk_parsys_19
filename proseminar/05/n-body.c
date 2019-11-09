@@ -20,20 +20,20 @@ void printSpace(Space space, int size);
 double calcForce(Particle p1, Particle p2);
 double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
-void calcNewSpace(Space space, int size);
+Space calcNewSpace(Space space, int size);
 Particle updatePostion(Particle particle, int size);
 
 int main(int argc, char **argv) {
 	if (argc < 3) {
-			printf("First parameter is size of the quadratic space, second parameter is number of particles\n");
-			return EXIT_FAILURE;
-		}
-
+		printf(
+				"First parameter is size of the quadratic space, second parameter is number of particles\n");
+		return EXIT_FAILURE;
+	}
 
 	int spaceSize = atoi(argv[1]);
 	int numberParticles = atoi(argv[2]);
 
-	if(numberParticles > spaceSize*spaceSize) {
+	if (numberParticles > spaceSize * spaceSize) {
 		printf("Number of particles must be smaller than space size (N*N)\n");
 		return EXIT_FAILURE;
 	}
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 	printSpace(space, spaceSize);
 
 	printf("\n\n");
-	calcNewSpace(space, spaceSize);
+	space = calcNewSpace(space, spaceSize);
 
 	printSpace(space, spaceSize);
 
@@ -90,7 +90,7 @@ void initSpace(Space space, int size, int number) {
 			particle.x = x;
 			particle.y = y;
 
-		//if no particle there, then mass is 0
+			//if no particle there, then mass is 0
 		} while (space[x][y].mass > 0);
 
 		space[x][y] = particle;
@@ -132,9 +132,12 @@ double calcVelocity(double force, Particle particle) {
 }
 
 /*
- * calculates the velocity of all particles and updates the postion
+ * calculates the velocity of all particles and updates the position
  */
-void calcNewSpace(Space space, int size) {
+Space calcNewSpace(Space space, int size) {
+
+	Space newSpace = createSpace(size);
+
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (space[i][j].mass > 0) {
@@ -147,11 +150,22 @@ void calcNewSpace(Space space, int size) {
 						temp.velocity = calcVelocity(force, temp);
 					}
 				}
-				temp = updatePostion(temp, size);
+				Particle newPart = updatePostion(temp, size);
+				printf("space%d", newSpace[0][0].x);
+				//colliding
+				if(newSpace[newPart.x][newPart.y].mass > 0)
+					newSpace[newPart.x][newPart.y].velocity += newPart.velocity;
+				else
+					newSpace[newPart.x][newPart.y] = newPart;
 
 			}
 		}
 	}
+
+	releaseSpace(space,size);
+	return newSpace;
+
+
 }
 
 Particle updatePostion(Particle particle, int size) {
@@ -167,11 +181,17 @@ Particle updatePostion(Particle particle, int size) {
 	y %= size;
 
 	printf("oldx%d newx%d\n", particle.x, x);
+	printf("oldy%d newy%d\n", particle.y, y);
 
 	particle.x = x;
 	particle.y = y;
 
-
 	return particle;
 
 }
+
+void releaseSpace(Space space, int size) {
+	free(space[0]);
+	free(space);
+}
+
