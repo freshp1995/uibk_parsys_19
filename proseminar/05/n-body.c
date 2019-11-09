@@ -22,6 +22,7 @@ double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
 Space calcNewSpace(Space space, int size);
 Particle updatePostion(Particle particle, int size);
+void releaseSpace(Space space);
 
 int main(int argc, char **argv) {
 	if (argc < 3) {
@@ -49,14 +50,16 @@ int main(int argc, char **argv) {
 
 	printSpace(space, spaceSize);
 
+	releaseSpace(space);
+
 }
 
 /*
  * creates a size*size array
  */
 Space createSpace(int size) {
-	Particle *data = (Particle*) malloc(size * size * sizeof(Particle));
-	Space array = (Particle**) malloc(size * sizeof(Particle*));
+	Particle *data = (Particle*) calloc(size * size, sizeof(Particle));
+	Space array = (Particle**) calloc(size, sizeof(Particle*));
 	for (int i = 0; i < size; i++)
 		array[i] = &(data[size * i]);
 
@@ -147,11 +150,11 @@ Space calcNewSpace(Space space, int size) {
 					for (int l = 0; l < size; l++) {
 						double force = calcForce(temp, space[k][l]);
 						//printf("force%f\n", force);
-						temp.velocity = calcVelocity(force, temp);
+						space[i][j].velocity += calcVelocity(force, temp);
 					}
 				}
 				Particle newPart = updatePostion(temp, size);
-				printf("space%d", newSpace[0][0].x);
+				//printf("space%d", newSpace[i][j].x);
 				//colliding
 				if(newSpace[newPart.x][newPart.y].mass > 0)
 					newSpace[newPart.x][newPart.y].velocity += newPart.velocity;
@@ -162,7 +165,7 @@ Space calcNewSpace(Space space, int size) {
 		}
 	}
 
-	releaseSpace(space,size);
+	releaseSpace(space);
 	return newSpace;
 
 
@@ -180,8 +183,8 @@ Particle updatePostion(Particle particle, int size) {
 	y = y + v;
 	y %= size;
 
-	printf("oldx%d newx%d\n", particle.x, x);
-	printf("oldy%d newy%d\n", particle.y, y);
+	//printf("oldx%d newx%d\n", particle.x, x);
+	//printf("oldy%d newy%d\n", particle.y, y);
 
 	particle.x = x;
 	particle.y = y;
@@ -190,7 +193,7 @@ Particle updatePostion(Particle particle, int size) {
 
 }
 
-void releaseSpace(Space space, int size) {
+void releaseSpace(Space space) {
 	free(space[0]);
 	free(space);
 }
