@@ -43,15 +43,17 @@ int main(int argc, char **argv) {
 
 	initSpace(space, spaceSize, numberParticles);
 
+	printf("Space\n");
 	printSpace(space, spaceSize);
 
-	printf("\n\n");
 	space = calcNewSpace(space, spaceSize);
 
+	printf("\n\nNew Space\n");
 	printSpace(space, spaceSize);
 
 	releaseSpace(space);
 
+	return EXIT_SUCCESS;
 }
 
 /*
@@ -109,7 +111,7 @@ void printSpace(Space space, int size) {
 			if (space[i][j].mass == 0) {
 				printf("-\t");
 			} else {
-				printf("%f\t", space[i][j].velocity);
+				printf("%.2f\t", space[i][j].velocity);
 			}
 		}
 		printf("\n");
@@ -125,7 +127,7 @@ double calcForce(Particle p1, Particle p2) {
 }
 
 double distance(Particle p1, Particle p2) {
-	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2) * 1.0);
+	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
 
 }
 
@@ -147,28 +149,28 @@ Space calcNewSpace(Space space, int size) {
 			if (space[i][j].mass == 0)
 				continue;
 
+			Particle temp = space[i][j];
 			double v = 0;
 
 			for (int k = 0; k < size; k++) {
 				for (int l = 0; l < size; l++) {
-					//empty space
-					if (space[k][l].mass == 0)
+					//empty space or same
+					if (space[k][l].mass == 0 || (k == i && l == j))
 						continue;
-					double force = calcForce(space[i][j], space[k][l]);
-					//printf("force%f\n", force);
-					v += calcVelocity(force, space[i][j]);
+					double force = calcForce(temp, space[k][l]);
+					v += calcVelocity(force, temp);
 				}
 			}
-			Particle temp = space[i][j];
+
 			temp.velocity = v;
-			printf("velocity%f\n", temp.velocity);
-			Particle newPart = updatePostion(space[i][j], size);
-			//printf("space%d", newSpace[i][j].x);
+			//printf("velocity%f\n", temp.velocity);
+			Particle newParticle = updatePostion(temp, size);
+
 			//colliding
-			if (newSpace[newPart.x][newPart.y].mass > 0)
-				newSpace[newPart.x][newPart.y].velocity += newPart.velocity;
+			if (newSpace[newParticle.x][newParticle.y].mass > 0)
+				newSpace[newParticle.x][newParticle.y].velocity += newParticle.velocity;
 			else
-				newSpace[newPart.x][newPart.y] = newPart;
+				newSpace[newParticle.x][newParticle.y] = newParticle;
 
 		}
 	}
