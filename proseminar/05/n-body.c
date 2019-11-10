@@ -143,31 +143,38 @@ Space calcNewSpace(Space space, int size) {
 
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
-			if (space[i][j].mass > 0) {
-				Particle temp = space[i][j];
+			//empty space
+			if (space[i][j].mass == 0)
+				continue;
 
-				for (int k = 0; k < size; k++) {
-					for (int l = 0; l < size; l++) {
-						double force = calcForce(temp, space[k][l]);
-						//printf("force%f\n", force);
-						space[i][j].velocity += calcVelocity(force, temp);
-					}
+			double v = 0;
+
+			for (int k = 0; k < size; k++) {
+				for (int l = 0; l < size; l++) {
+					//empty space
+					if (space[k][l].mass == 0)
+						continue;
+					double force = calcForce(space[i][j], space[k][l]);
+					//printf("force%f\n", force);
+					v += calcVelocity(force, space[i][j]);
 				}
-				Particle newPart = updatePostion(temp, size);
-				//printf("space%d", newSpace[i][j].x);
-				//colliding
-				if(newSpace[newPart.x][newPart.y].mass > 0)
-					newSpace[newPart.x][newPart.y].velocity += newPart.velocity;
-				else
-					newSpace[newPart.x][newPart.y] = newPart;
-
 			}
+			Particle temp = space[i][j];
+			temp.velocity = v;
+			printf("velocity%f\n", temp.velocity);
+			Particle newPart = updatePostion(space[i][j], size);
+			//printf("space%d", newSpace[i][j].x);
+			//colliding
+			if (newSpace[newPart.x][newPart.y].mass > 0)
+				newSpace[newPart.x][newPart.y].velocity += newPart.velocity;
+			else
+				newSpace[newPart.x][newPart.y] = newPart;
+
 		}
 	}
 
 	releaseSpace(space);
 	return newSpace;
-
 
 }
 
