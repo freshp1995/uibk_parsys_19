@@ -147,12 +147,12 @@ void printSpace(Space space, int size, char *title) {
 double calcForce(Particle p1, Particle p2) {
 
 	double r = distance(p1, p2);
-	return G * (p1.mass * p2.mass) / pow(r, 2);
+	return G * (p1.mass * p2.mass) / r;
 
 }
 
 double distance(Particle p1, Particle p2) {
-	return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
+	return pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2);
 
 }
 
@@ -207,8 +207,8 @@ Space calcNewSpace(Space space, int size) {
 
 Particle updatePostion(Particle particle, int size) {
 
-	int x = particle.x;
-	int y = particle.y;
+	long x = particle.x;
+	long y = particle.y;
 	double v = particle.velocity;
 
 	x = x + v;
