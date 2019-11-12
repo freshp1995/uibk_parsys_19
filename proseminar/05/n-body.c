@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #define G 1
 #define SEED 55754186
@@ -10,13 +11,14 @@ typedef struct {
 	int y;
 	double velocity;
 	int mass;
+	int identifier;
 } Particle;
 
 typedef Particle **Space;
 
 Space createSpace(int size);
 void initSpace(Space space, int size, int number);
-void printSpace(Space space, int size);
+void printSpace(Space space, int size, char *title);
 double calcForce(Particle p1, Particle p2);
 double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
@@ -43,13 +45,14 @@ int main(int argc, char **argv) {
 
 	initSpace(space, spaceSize, numberParticles);
 
-	printf("Space\n");
-	printSpace(space, spaceSize);
+	printSpace(space, spaceSize, "Space");
 
-	space = calcNewSpace(space, spaceSize);
+	for (int i = 0; i < 10; i++) {
+		space = calcNewSpace(space, spaceSize);
+		sleep(1);
 
-	printf("\n\nNew Space\n");
-	printSpace(space, spaceSize);
+		printSpace(space, spaceSize, "New Space");
+	}
 
 	releaseSpace(space);
 
@@ -98,20 +101,23 @@ void initSpace(Space space, int size, int number) {
 			//if no particle there, then mass is 0
 		} while (space[x][y].mass > 0);
 
+		particle.identifier = i + 1;
 		space[x][y] = particle;
 
 	}
 
 }
 
-void printSpace(Space space, int size) {
+void printSpace(Space space, int size, char *title) {
 
+	printf("\033[2J");
+	printf("%s\n", title);
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (space[i][j].mass == 0) {
 				printf("-\t");
 			} else {
-				printf("%.2f\t", space[i][j].velocity);
+				printf("%.2f (%d)\t", space[i][j].velocity, space[i][j].identifier);
 			}
 		}
 		printf("\n");
