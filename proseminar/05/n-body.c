@@ -27,14 +27,15 @@ Particle updatePostion(Particle particle, int size);
 void releaseSpace(Space space);
 
 int main(int argc, char **argv) {
-	if (argc < 3) {
+	if (argc < 4) {
 		printf(
-				"First parameter is size of the quadratic space, second parameter is number of particles\n");
+				"First parameter is size of the quadratic space, second parameter is number of particles and the third is the number of timestamps\n");
 		return EXIT_FAILURE;
 	}
 
 	int spaceSize = atoi(argv[1]);
 	int numberParticles = atoi(argv[2]);
+	int timestamps = atoi(argv[3]);
 
 	if (numberParticles > spaceSize * spaceSize) {
 		printf("Number of particles must be smaller than space size (N*N)\n");
@@ -47,11 +48,18 @@ int main(int argc, char **argv) {
 
 	printSpace(space, spaceSize, "Space");
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < timestamps; i++) {
 		space = calcNewSpace(space, spaceSize);
 		sleep(1);
 
-		printSpace(space, spaceSize, "New Space");
+		char *timestamp_string = malloc(sizeof(char) * 20);
+		if (!timestamp_string) {
+			perror("Could not alloc memory");
+		}
+
+		sprintf(timestamp_string, "New Space %d", i + 1);
+		printSpace(space, spaceSize, timestamp_string);
+		free(timestamp_string);
 	}
 
 	releaseSpace(space);
