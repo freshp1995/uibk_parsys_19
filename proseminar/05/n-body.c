@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 
 #define G 1
 #define SEED 55754186
@@ -10,13 +11,14 @@ typedef struct {
 	int y;
 	double velocity;
 	int mass;
+	int identifier;
 } Particle;
 
 typedef Particle **Space;
 
 Space createSpace(int size);
 void initSpace(Space space, int size, int number);
-void printSpace(Space space, int size);
+void printSpace(Space space, int size, char *title);
 double calcForce(Particle p1, Particle p2);
 double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
@@ -25,14 +27,15 @@ Particle updatePostion(Particle particle, int size);
 void releaseSpace(Space space);
 
 int main(int argc, char **argv) {
-	if (argc < 3) {
+	if (argc < 4) {
 		printf(
-				"First parameter is size of the quadratic space, second parameter is number of particles\n");
+				"First parameter is size of the quadratic space, second parameter is number of particles and the third is the number of timestamps\n");
 		return EXIT_FAILURE;
 	}
 
 	int spaceSize = atoi(argv[1]);
 	int numberParticles = atoi(argv[2]);
+	int timestamps = atoi(argv[3]);
 
 	if (numberParticles > spaceSize * spaceSize) {
 		printf("Number of particles must be smaller than space size (N*N)\n");
@@ -43,13 +46,21 @@ int main(int argc, char **argv) {
 
 	initSpace(space, spaceSize, numberParticles);
 
-	printf("Space\n");
-	printSpace(space, spaceSize);
+	printSpace(space, spaceSize, "Space");
 
-	space = calcNewSpace(space, spaceSize);
+	for (int i = 0; i < timestamps; i++) {
+		space = calcNewSpace(space, spaceSize);
+		sleep(1);
 
-	printf("\n\nNew Space\n");
-	printSpace(space, spaceSize);
+		char *timestamp_string = malloc(sizeof(char) * 20);
+		if (!timestamp_string) {
+			perror("Could not alloc memory");
+		}
+
+		sprintf(timestamp_string, "New Space %d", i + 1);
+		printSpace(space, spaceSize, timestamp_string);
+		free(timestamp_string);
+	}
 
 	releaseSpace(space);
 
@@ -98,20 +109,23 @@ void initSpace(Space space, int size, int number) {
 			//if no particle there, then mass is 0
 		} while (space[x][y].mass > 0);
 
+		particle.identifier = i + 1;
 		space[x][y] = particle;
 
 	}
 
 }
 
-void printSpace(Space space, int size) {
+void printSpace(Space space, int size, char *title) {
 
+	printf("\033[2J");
+	printf("%s\n", title);
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (space[i][j].mass == 0) {
 				printf("-\t");
 			} else {
-				printf("%.2f\t", space[i][j].velocity);
+				printf("%.2f (%d)\t", space[i][j].velocity, space[i][j].identifier);
 			}
 		}
 		printf("\n");
