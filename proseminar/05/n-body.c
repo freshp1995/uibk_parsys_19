@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include <time.h>
 
 #define G 1
 #define SEED 55754186
@@ -25,6 +26,12 @@ double calcVelocity(double force, Particle particle);
 Space calcNewSpace(Space space, int size);
 Particle updatePostion(Particle particle, int size);
 void releaseSpace(Space space);
+
+long timediff(clock_t t1, clock_t t2) {
+    long elapsed;
+    elapsed = ((double)t2 - t1) / CLOCKS_PER_SEC * 1000;
+    return elapsed;
+}
 
 int main(int argc, char **argv) {
 	if (argc < 4) {
@@ -50,9 +57,10 @@ int main(int argc, char **argv) {
 
 	for (int i = 0; i < timestamps; i++) {
 		space = calcNewSpace(space, spaceSize);
+		//remove for testing------------------------------------------------
 		sleep(1);
 
-		char *timestamp_string = malloc(sizeof(char) * 20);
+		char *timestamp_string = malloc(sizeof(char) * 50);
 		if (!timestamp_string) {
 			perror("Could not alloc memory");
 		}
@@ -60,6 +68,7 @@ int main(int argc, char **argv) {
 		sprintf(timestamp_string, "New Space %d", i + 1);
 		printSpace(space, spaceSize, timestamp_string);
 		free(timestamp_string);
+		//-------------------------------------------------------------------
 	}
 
 	releaseSpace(space);
@@ -125,7 +134,7 @@ void printSpace(Space space, int size, char *title) {
 			if (space[i][j].mass == 0) {
 				printf("-\t");
 			} else {
-				printf("%.2f (%d)\t", space[i][j].velocity, space[i][j].identifier);
+				printf("%d\t", space[i][j].identifier);
 			}
 		}
 		printf("\n");
