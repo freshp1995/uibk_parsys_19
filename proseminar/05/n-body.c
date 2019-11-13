@@ -157,12 +157,8 @@ double calcForce(Particle p1, Particle p2) {
 }
 
 double distance(Particle p1, Particle p2) {
-	if (p1.x > p2.x || p1.y > p2.y) {
-		return -pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2);
-	} else {
-		return pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2);
-	}
 
+	return pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2);
 }
 
 double calcVelocity(double force, Particle particle) {
