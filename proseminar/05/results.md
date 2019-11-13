@@ -1,6 +1,6 @@
 # Exercise 1
 
-
+![Runtime](./runtime.png)
 
 # Exercise 2
 

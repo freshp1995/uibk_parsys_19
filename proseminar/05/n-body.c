@@ -158,11 +158,11 @@ double calcForce(Particle p1, Particle p2) {
 
 double distance(Particle p1, Particle p2) {
 	return pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2);
-
 }
 
 double calcVelocity(double force, Particle particle) {
-	return particle.velocity + force / particle.mass;
+	//printf("%f\n", particle.velocity + (force / particle.mass));
+	return particle.velocity + (force / particle.mass);
 
 }
 
@@ -180,7 +180,7 @@ Space calcNewSpace(Space space, int size) {
 				continue;
 
 			Particle temp = space[i][j];
-			double v = 0;
+			//double v = 0;
 
 			for (int k = 0; k < size; k++) {
 				for (int l = 0; l < size; l++) {
@@ -188,11 +188,11 @@ Space calcNewSpace(Space space, int size) {
 					if (space[k][l].mass == 0 || (k == i && l == j))
 						continue;
 					double force = calcForce(temp, space[k][l]);
-					v += calcVelocity(force, temp);
+					temp.velocity = calcVelocity(force, temp);
 				}
 			}
 
-			temp.velocity = v;
+			//temp.velocity = v;
 			//printf("velocity%f\n", temp.velocity);
 			Particle newParticle = updatePostion(temp, size);
 
