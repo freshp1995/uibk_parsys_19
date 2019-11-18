@@ -52,14 +52,12 @@ int main(int argc, char **argv) {
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-    
-    MPI_Comm comm;
-    Particle *root = create_particles(numberParticles);
 
-    //if (rank == 0) {
-        Particle * particles = create_particles(numberParticles * numProcs);
+    Particle * particles;
+    if (rank == 0) {
+        particles = create_particles(numberParticles * numProcs);
         init_particles(particles, numberParticles * numProcs);
-    //}
+    }
 
     //create own type
     MPI_Datatype Particletype;
@@ -75,34 +73,47 @@ int main(int argc, char **argv) {
     MPI_Type_create_struct(6,blocklengths,displacements,datatypes, &Particletype);
     MPI_Type_commit(&Particletype);
 
-    
-    //print_particles(particles, numberParticles);
+    if (rank == 0) {
+        print_particles(particles, numberParticles * numProcs);
+    }
 
+    Particle *root = create_particles(numberParticles);
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
-        //MPI_Scatter( sendbuf, 100, MPI_INT, rbuf, 100, MPI_INT, root, comm);
-		particles = calculate_new_timestamp(root, numberParticles * numProcs);
+        MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);
+		root = calculate_new_timestamp(root, numberParticles);
+        
+        MPI_Gather(root, numberParticles, Particletype, particles, numberParticles, Particletype, 0, MPI_COMM_WORLD); 
 		//remove for testing------------------------------------------------
 		//sleep(1);
-        print_particles(particles, numberParticles * numProcs);
+        if (rank == 0) {
+            //print_particles(particles, numberParticles * numProcs);
+        }
 		//-------------------------------------------------------------------
 	}
-	gettimeofday(&tv2, NULL);
 
-	/*printf ("Total time = %f seconds\n",
-			(double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-			(double) (tv2.tv_sec - tv1.tv_sec));*/
+    if (rank == 0) {
+        gettimeofday(&tv2, NULL);
 
-	printf ("%f",
-			(double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-			(double) (tv2.tv_sec - tv1.tv_sec));
+        /*printf ("Total time = %f seconds\n",
+                (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                (double) (tv2.tv_sec - tv1.tv_sec));*/
 
+        printf ("%f",
+                (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                (double) (tv2.tv_sec - tv1.tv_sec));
+    }
 
-
+    
     release_particles(root);
-    release_particles(particles);
+    
+
+    if (rank == 0) {
+        release_particles(particles);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 
     return EXIT_SUCCESS;
@@ -245,7 +256,7 @@ Particle *calculate_new_timestamp(Particle *particles, int number_of_particles) 
     	 temp[i] = updatePostion(temp[i], INT_MAX);
     }
     
-    release_particles(particles);
+    //release_particles(particles);
 
     return temp;
 }
