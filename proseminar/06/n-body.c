@@ -30,7 +30,7 @@ double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
 Particle updatePostion(Particle particle, int size);
 double sum_up_force(Particle *particles, int number_of_particles, int index);
-Particle* calculate_new_timestamp(Particle *particles, int number_of_particles);
+Particle* calculate_new_timestamp(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles);
 
 void swap(int *a, int *b);
 void randomize(int arr[], int n);
@@ -53,25 +53,28 @@ int main(int argc, char **argv) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
-    Particle * particles;
-    if (rank == 0) {
-        particles = create_particles(numberParticles * numProcs);
-        init_particles(particles, numberParticles * numProcs);
-    }
+	//create own type
+	MPI_Datatype Particletype;
+	int blocklengths[6] = { 1, 2,3,4,5,6 };
+	MPI_Datatype datatypes[6] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT};
+	MPI_Aint displacements[6] =
+	{ 	offsetof(Particle, x),
+		offsetof(Particle, y),
+		offsetof(Particle, velocity_x),
+		offsetof(Particle, velocity_y),
+		offsetof(Particle, mass),
+		offsetof(Particle, identifier)};
+	MPI_Type_create_struct(6,blocklengths,displacements,datatypes, &Particletype);
+	MPI_Type_commit(&Particletype);
 
-    //create own type
-    MPI_Datatype Particletype;
-    int blocklengths[6] = { 1, 2,3,4,5,6 };
-    MPI_Datatype datatypes[6] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT};
-    MPI_Aint displacements[6] =
-    { offsetof(Particle, x),
-    		offsetof(Particle, y),
-			offsetof(Particle, velocity_x),
-			offsetof(Particle, velocity_y),
-			offsetof(Particle, mass),
-			offsetof(Particle, identifier)};
-    MPI_Type_create_struct(6,blocklengths,displacements,datatypes, &Particletype);
-    MPI_Type_commit(&Particletype);
+    Particle * particles = create_particles(numberParticles * numProcs);
+    if (rank == 0) {
+		init_particles(particles, numberParticles * numProcs);
+
+	}
+
+    MPI_Bcast(particles, numberParticles * numProcs, Particletype, 0,
+    				MPI_COMM_WORLD);
 
     if (rank == 0) {
         print_particles(particles, numberParticles * numProcs);
@@ -82,8 +85,8 @@ int main(int argc, char **argv) {
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
-        MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);
-		root = calculate_new_timestamp(root, numberParticles);
+        MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);printf("\n\nhere");
+		root = calculate_new_timestamp(root,particles, numberParticles, numberParticles * numProcs);
         
         MPI_Gather(root, numberParticles, Particletype, particles, numberParticles, Particletype, 0, MPI_COMM_WORLD); 
 		//remove for testing------------------------------------------------
@@ -135,12 +138,12 @@ void init_particles(Particle* particles, int number_of_particles) {
 
     int steps = (int)(INT_MAX / number_of_particles);
 
-    int *random_x_values = malloc(sizeof(int) * number_of_particles);
+    int *random_x_values = malloc(sizeof(int)* number_of_particles);
     if (!random_x_values) {
         perror("Error allocating memory");
         return;
     }
-    int *random_y_values = malloc(sizeof(int) * number_of_particles);
+    int *random_y_values = malloc(sizeof(int)* number_of_particles);
     if (!random_y_values) {
         perror("Error allocating memory");
         return;
@@ -237,26 +240,26 @@ double sum_up_force(Particle *particles, int number_of_particles, int index) {
     return force;
 }
 
-Particle *calculate_new_timestamp(Particle *particles, int number_of_particles) {
+Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles) {
     Particle *temp = create_particles(number_of_particles);
 
     for (int i = 0; i < number_of_particles; i++) {
     	temp[i] = particles[i];
-    	for(int j = 0; j < number_of_particles; j++) {
-    		if(i != j) {
+    	for(int j = 0; j < number_of_all_particles; j++) {
+    		if(temp[i].identifier != allParticles[j].identifier) {
 
-				double force = calcForce(temp[i], particles[j]);
+				double force = calcForce(temp[i], allParticles[j]);
 				//https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
-				double angle = atan2(temp[i].y - particles[j].y,  temp[i].x - particles[j].x);
-				temp[i].velocity_x += calcVelocity(force, particles[j]) * cos(angle);
-				temp[i].velocity_y += calcVelocity(force, particles[j]) * sin(angle);
+				double angle = atan2(temp[i].y - allParticles[j].y,  temp[i].x - allParticles[j].x);
+				temp[i].velocity_x += calcVelocity(force, allParticles[j]) * cos(angle);
+				temp[i].velocity_y += calcVelocity(force, allParticles[j]) * sin(angle);
 
     		}
     	}
     	 temp[i] = updatePostion(temp[i], INT_MAX);
     }
     
-    //release_particles(particles);
+    release_particles(particles);
 
     return temp;
 }
@@ -268,7 +271,7 @@ void swap(int *a, int *b) {
 }
 
 void randomize(int arr[], int n) {
-    srand(time(NULL));
+    srand(SEED);
     int i;
     for(i = n-1; i > 0; i--) {
         int j = rand() % (i+1);
