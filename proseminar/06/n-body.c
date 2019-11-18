@@ -14,7 +14,8 @@
 typedef struct {
 	int x;
 	int y;
-	double velocity;
+	double velocity_x;
+	double velocity_y;
 	int mass;
 	int identifier;
 } Particle;
@@ -60,7 +61,19 @@ int main(int argc, char **argv) {
         init_particles(particles, numberParticles * numProcs);
     //}
 
-    
+    //create own type
+    MPI_Datatype Particletype;
+    int blocklengths[6] = { 1, 2,3,4,5,6 };
+    MPI_Datatype datatypes[6] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT};
+    MPI_Aint displacements[6] =
+    { offsetof(Particle, x),
+    		offsetof(Particle, y),
+			offsetof(Particle, velocity_x),
+			offsetof(Particle, velocity_y),
+			offsetof(Particle, mass),
+			offsetof(Particle, identifier)};
+    MPI_Type_create_struct(6,blocklengths,displacements,datatypes, &Particletype);
+    MPI_Type_commit(&Particletype);
 
     
     //print_particles(particles, numberParticles);
@@ -133,10 +146,11 @@ void init_particles(Particle* particles, int number_of_particles) {
 
     for (int i = 0; i < number_of_particles; i++) {
         Particle particle;
-		v = rand() % 100; //so v doesn't get too high
+		//v = rand() % 100; //so v doesn't get too high
 		m = 1;
 
-		particle.velocity = v;
+		particle.velocity_x = 0;
+		particle.velocity_y = 0;
 		particle.mass = m;
 
 		particle.x = random_x_values[i];
@@ -175,7 +189,7 @@ double distance(Particle p1, Particle p2) {
 }
 
 double calcVelocity(double force, Particle particle) {
-	return particle.velocity + (force / particle.mass);
+	return (force / particle.mass);
 
 }
 
@@ -183,12 +197,13 @@ Particle updatePostion(Particle particle, int size) {
 
 	long x = particle.x;
 	long y = particle.y;
-	double v = particle.velocity;
+	double v_x = particle.velocity_x;
+	double v_y = particle.velocity_x;
 
-	x = x + v;
+	x = x + v_x;
 	x %= size;
 
-	y = y + v;
+	y = y + v_y;
 	y %= size;
 
 	//printf("oldx%d newx%d\n", particle.x, x);
@@ -215,13 +230,19 @@ Particle *calculate_new_timestamp(Particle *particles, int number_of_particles) 
     Particle *temp = create_particles(number_of_particles);
 
     for (int i = 0; i < number_of_particles; i++) {
-        temp[i] = particles[i];
+    	temp[i] = particles[i];
+    	for(int j = 0; j < number_of_particles; j++) {
+    		if(i != j) {
 
-        double force = sum_up_force(particles, number_of_particles, i);
-        double velocity = calcVelocity(force, particles[i]);
-        temp[i].velocity = velocity;
+				double force = calcForce(temp[i], particles[j]);
+				//https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
+				double angle = atan2(temp[i].y - particles[j].y,  temp[i].x - particles[j].x);
+				temp[i].velocity_x += calcVelocity(force, particles[j]) * cos(angle);
+				temp[i].velocity_y += calcVelocity(force, particles[j]) * sin(angle);
 
-        temp[i] = updatePostion(temp[i], INT_MAX);
+    		}
+    	}
+    	 temp[i] = updatePostion(temp[i], INT_MAX);
     }
     
     release_particles(particles);
