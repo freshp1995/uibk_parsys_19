@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
 	//create own type
 	MPI_Datatype Particletype;
-	int blocklengths[6] = { 1, 2,3,4,5,6 };
+	int blocklengths[6] = { 1, 1,2,2,1,1 };
 	MPI_Datatype datatypes[6] = {MPI_INT, MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_INT, MPI_INT};
 	MPI_Aint displacements[6] =
 	{ 	offsetof(Particle, x),
