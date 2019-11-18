@@ -85,14 +85,15 @@ int main(int argc, char **argv) {
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
-        MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);printf("\n\nhere");
+        MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);
+
 		root = calculate_new_timestamp(root,particles, numberParticles, numberParticles * numProcs);
         
         MPI_Gather(root, numberParticles, Particletype, particles, numberParticles, Particletype, 0, MPI_COMM_WORLD); 
 		//remove for testing------------------------------------------------
-		//sleep(1);
+		sleep(1);
         if (rank == 0) {
-            //print_particles(particles, numberParticles * numProcs);
+            print_particles(particles, numberParticles * numProcs);
         }
 		//-------------------------------------------------------------------
 	}
@@ -133,7 +134,6 @@ Particle* create_particles(int number_of_particles) {
 }
 
 void init_particles(Particle* particles, int number_of_particles) {
-    double v;
 	int m;
 
     int steps = (int)(INT_MAX / number_of_particles);
@@ -160,11 +160,10 @@ void init_particles(Particle* particles, int number_of_particles) {
 
     for (int i = 0; i < number_of_particles; i++) {
         Particle particle;
-		//v = rand() % 100; //so v doesn't get too high
 		m = 1;
 
-		particle.velocity_x = 0;
-		particle.velocity_y = 0;
+		particle.velocity_x = rand() % 100;//so v doesn't get too high
+		particle.velocity_y = rand() % 100;
 		particle.mass = m;
 
 		particle.x = random_x_values[i];
@@ -180,7 +179,7 @@ void init_particles(Particle* particles, int number_of_particles) {
 
 void print_particles(Particle *particles, int number_of_particles) {
     for (int i = 0; i < number_of_particles; i++) {
-        printf("x: %d\t--\ty: %d\n", particles[i].x, particles[i].y);
+        printf("x: %d\t--\ty: %d \tm: %d\n", particles[i].x, particles[i].y, particles[i].mass);
     }
 
     printf("\n");
@@ -220,6 +219,8 @@ Particle updatePostion(Particle particle, int size) {
 	y = y + v_y;
 	y %= size;
 
+	//printf("vx%f vy%f\n", particle.velocity_x, particle.velocity_y);
+
 	//printf("oldx%d newx%d\n", particle.x, x);
 	//printf("oldy%d newy%d\n", particle.y, y);
 
@@ -247,6 +248,7 @@ Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, i
     	temp[i] = particles[i];
     	for(int j = 0; j < number_of_all_particles; j++) {
     		if(temp[i].identifier != allParticles[j].identifier) {
+    			//printf("m1%d m2%d\n", temp[i].mass, allParticles[i].mass);
 
 				double force = calcForce(temp[i], allParticles[j]);
 				//https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
