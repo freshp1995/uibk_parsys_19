@@ -69,10 +69,11 @@ int main(int argc, char **argv) {
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
-		particles = calculate_new_timestamp(particles, numberParticles * numberParticles);
+        //MPI_Scatter( sendbuf, 100, MPI_INT, rbuf, 100, MPI_INT, root, comm);
+		particles = calculate_new_timestamp(root, numberParticles * numProcs);
 		//remove for testing------------------------------------------------
 		//sleep(1);
-        print_particles(particles, numberParticles * numberParticles);
+        print_particles(particles, numberParticles * numProcs);
 		//-------------------------------------------------------------------
 	}
 	gettimeofday(&tv2, NULL);
