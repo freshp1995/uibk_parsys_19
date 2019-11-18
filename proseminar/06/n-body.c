@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include <mpi.h>
 #include <limits.h>
 #include <string.h>
 
@@ -28,14 +29,14 @@ double distance(Particle p1, Particle p2);
 double calcVelocity(double force, Particle particle);
 Particle updatePostion(Particle particle, int size);
 double sum_up_force(Particle *particles, int number_of_particles, int index);
-void calculate_new_timestamp(Particle *particles, int number_of_particles);
+Particle* calculate_new_timestamp(Particle *particles, int number_of_particles);
 
 void swap(int *a, int *b);
 void randomize(int arr[], int n);
 
 int main(int argc, char **argv) {
     if (argc < 3) {
-		printf("First parameter is the number of particles, second parameter is the number of timestamps\n");
+		printf("First parameter is the number of particles for each rank, second parameter is the number of timestamps\n");
 		return EXIT_FAILURE;
 	}
 
@@ -43,20 +44,35 @@ int main(int argc, char **argv) {
 	int numberParticles = atoi(argv[1]);
 	int timestamps = atoi(argv[2]);
 
-    Particle * particles = create_particles(numberParticles);
-    init_particles(particles, numberParticles);
+    int rank, numProcs;
+        
+    /* initialize mpi*/
+	MPI_Init(&argc, &argv);
 
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    
+    MPI_Comm comm;
+    Particle *root = create_particles(numberParticles);
 
+    //if (rank == 0) {
+        Particle * particles = create_particles(numberParticles * numProcs);
+        init_particles(particles, numberParticles * numProcs);
+    //}
+
+    
+
+    
     //print_particles(particles, numberParticles);
 
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
-		calculate_new_timestamp(particles, numberParticles);
+		particles = calculate_new_timestamp(particles, numberParticles * numberParticles);
 		//remove for testing------------------------------------------------
 		//sleep(1);
-        print_particles(particles, numberParticles);
+        print_particles(particles, numberParticles * numberParticles);
 		//-------------------------------------------------------------------
 	}
 	gettimeofday(&tv2, NULL);
@@ -71,7 +87,9 @@ int main(int argc, char **argv) {
 
 
 
+    release_particles(root);
     release_particles(particles);
+    MPI_Finalize();
 
     return EXIT_SUCCESS;
 }
@@ -135,6 +153,8 @@ void print_particles(Particle *particles, int number_of_particles) {
     for (int i = 0; i < number_of_particles; i++) {
         printf("x: %d\t--\ty: %d\n", particles[i].x, particles[i].y);
     }
+
+    printf("\n");
 }
 
 void release_particles(Particle* particles) {
@@ -190,14 +210,22 @@ double sum_up_force(Particle *particles, int number_of_particles, int index) {
     return force;
 }
 
-void calculate_new_timestamp(Particle *particles, int number_of_particles) {
+Particle *calculate_new_timestamp(Particle *particles, int number_of_particles) {
+    Particle *temp = create_particles(number_of_particles);
+
     for (int i = 0; i < number_of_particles; i++) {
+        temp[i] = particles[i];
+
         double force = sum_up_force(particles, number_of_particles, i);
         double velocity = calcVelocity(force, particles[i]);
-        particles[i].velocity = velocity;
+        temp[i].velocity = velocity;
 
-        particles[i] = updatePostion(particles[i], INT_MAX);
+        temp[i] = updatePostion(temp[i], INT_MAX);
     }
+    
+    release_particles(particles);
+
+    return temp;
 }
 
 void swap(int *a, int *b) {

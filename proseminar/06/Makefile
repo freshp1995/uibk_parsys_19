@@ -8,7 +8,7 @@ all: n-body
 
 
 n-body: n-body.c
-	@$(CC) $(CC_FLAGS) $< -o n-body
+	@$(MPI) $(CC_FLAGS) $< -o n-body
 
 
 
