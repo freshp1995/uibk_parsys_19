@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
         
         MPI_Gather(root, numberParticles, Particletype, particles, numberParticles, Particletype, 0, MPI_COMM_WORLD); 
 		//remove for testing------------------------------------------------
-		sleep(1);
+		//sleep(1);
         if (rank == 0) {
             print_particles(particles, numberParticles * numProcs);
         }
