@@ -23,8 +23,8 @@ module load openmpi/4.0.1
 
 N=10000
 
-for (( i=0;i < $N; i+=1 ))
+for (( i=0;i < $N; i+=10 ))
 do
-    mpiexec -n 8 n-body 16 10000
+    mpiexec -n 8 n-body $i 10000
 done
 #mpiexec -n 8 ./n-body-temp
