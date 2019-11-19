@@ -12,7 +12,7 @@
 #$ -N n-body-temp
 
 # Redirect output stream to this file.
-#$ -o n-body-temp.dat
+#$ -o data.dat
 
 # Join the error stream to the output stream.
 #$ -j yes
@@ -23,7 +23,7 @@ module load openmpi/4.0.1
 
 N=10000
 
-for (i=0;i < $N; i+=1)
+for (( i=0;i < $N; i+=1 ))
 do
     mpiexec -n 8 n-body 16
 done
