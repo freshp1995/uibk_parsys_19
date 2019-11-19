@@ -1,12 +1,10 @@
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
-#include <mpi.h>
 #include <limits.h>
-#include <string.h>
 
 #define G 1
 #define SEED 55754186
@@ -48,7 +46,7 @@ int main(int argc, char **argv) {
     int rank, numProcs;
         
     /* initialize mpi*/
-	MPI_Init(&argc, &argv);
+	MPI_Init(NULL, NULL);
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
@@ -70,15 +68,14 @@ int main(int argc, char **argv) {
     Particle * particles = create_particles(numberParticles * numProcs);
     if (rank == 0) {
 		init_particles(particles, numberParticles * numProcs);
-
 	}
 
     MPI_Bcast(particles, numberParticles * numProcs, Particletype, 0,
     				MPI_COMM_WORLD);
 
-    if (rank == 0) {
-        print_particles(particles, numberParticles * numProcs);
-    }
+    //if (rank == 0) {
+    //    print_particles(particles, numberParticles * numProcs);
+    //}
 
     Particle *root = create_particles(numberParticles);
     struct timeval  tv1, tv2;
@@ -92,9 +89,9 @@ int main(int argc, char **argv) {
         MPI_Gather(root, numberParticles, Particletype, particles, numberParticles, Particletype, 0, MPI_COMM_WORLD); 
 		//remove for testing------------------------------------------------
 		//sleep(1);
-        if (rank == 0) {
-            print_particles(particles, numberParticles * numProcs);
-        }
+        //if (rank == 0) {
+        //    print_particles(particles, numberParticles * numProcs);
+        //}
 		//-------------------------------------------------------------------
 	}
 
@@ -105,7 +102,7 @@ int main(int argc, char **argv) {
                 (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                 (double) (tv2.tv_sec - tv1.tv_sec));*/
 
-        printf ("%f",
+        printf ("%d;%f;",numberParticles * numProcs,
                 (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                 (double) (tv2.tv_sec - tv1.tv_sec));
     }

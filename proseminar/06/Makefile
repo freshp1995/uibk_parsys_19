@@ -8,13 +8,13 @@ all: n-body
 
 
 n-body: n-body.c
-	@$(MPI) $(CC_FLAGS) $< -o n-body
+	@$(MPI) $(CC_FLAGS) $< -o exec
 
 
 
 .PHONEY: clean
 clean:
-	@rm n-body
+	@rm exec
 
 
 .PHONEY: run
