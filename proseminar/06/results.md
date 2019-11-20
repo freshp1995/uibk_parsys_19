@@ -13,4 +13,10 @@ Futhermore, we see that the time decreases by incresing the rank size
 
 ![Speedup](./speedup.png)
 
+![Speedup](./8vs10.png)
+
+![Speedup](./10vs12.png)
+
+![Speedup](./4vs14.png)
+
 
