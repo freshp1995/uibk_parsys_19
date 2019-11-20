@@ -70,8 +70,7 @@ int main(int argc, char **argv) {
 		init_particles(particles, numberParticles * numProcs);
 	}
 
-    MPI_Bcast(particles, numberParticles * numProcs, Particletype, 0,
-    				MPI_COMM_WORLD);
+    
 
     //if (rank == 0) {
     //    print_particles(particles, numberParticles * numProcs);
@@ -82,6 +81,7 @@ int main(int argc, char **argv) {
 	gettimeofday(&tv1, NULL);
 
 	for (int i = 0; i < timestamps; i++) {
+        MPI_Bcast(particles, numberParticles * numProcs, Particletype, 0, MPI_COMM_WORLD);
         MPI_Scatter(particles, numberParticles, Particletype, root, numberParticles, Particletype, 0, MPI_COMM_WORLD);
 
 		root = calculate_new_timestamp(root,particles, numberParticles, numberParticles * numProcs);
