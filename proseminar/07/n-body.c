@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
     
     gettimeofday(&tv2, NULL);
 
+    print_particles(particles, numberParticles * numProcs);
     printf ("%d;%f;\n",numberParticles * numProcs,
             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
             (double) (tv2.tv_sec - tv1.tv_sec));
@@ -246,7 +247,7 @@ Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, i
 Particle *calculate_new_timestamp_para(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles) {
     Particle *temp = create_particles(number_of_particles);
 
-    #pragma omp for 
+    //#pragma omp for 
     for (int i = 0; i < number_of_particles; i++) {
         temp[i] = particles[i]; 
         for(int j = 0; j < number_of_all_particles; j++) {
