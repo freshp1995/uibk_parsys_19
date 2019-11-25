@@ -29,6 +29,7 @@ double calcVelocity(double force, Particle particle);
 Particle updatePostion(Particle particle, int size);
 double sum_up_force(Particle *particles, int number_of_particles, int index);
 Particle* calculate_new_timestamp(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles);
+Particle *calculate_new_timestamp_para(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles);
 
 void swap(int *a, int *b);
 void randomize(int arr[], int n);
@@ -73,7 +74,7 @@ int main(int argc, char **argv) {
         #pragma omp parallel private(root)
             {
                 int id = omp_get_thread_num();
-                root = calculate_new_timestamp(&particles[id * numberParticles], particles, numberParticles, numberParticles * numProcs);
+                root = calculate_new_timestamp_para(&particles[id * numberParticles], particles, numberParticles, numberParticles * numProcs);
 
                 #pragma omp barrier
                 for (int j = 0; j < numberParticles; j++) {
@@ -238,6 +239,32 @@ Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, i
     	}
     	 temp[i] = updatePostion(temp[i], INT_MAX);
     }
+    
+    return temp;
+}
+
+Particle *calculate_new_timestamp_para(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles) {
+    Particle *temp = create_particles(number_of_particles);
+
+    #pragma omp for 
+    for (int i = 0; i < number_of_particles; i++) {
+        temp[i] = particles[i]; 
+        for(int j = 0; j < number_of_all_particles; j++) {
+            if(temp[i].identifier != allParticles[j].identifier) {
+                //printf("m1%d m2%d\n", temp[i].mass, allParticles[i].mass);
+
+                double force = calcForce(temp[i], allParticles[j]);
+                //https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
+                double angle = atan2(temp[i].y - allParticles[j].y,  temp[i].x - allParticles[j].x);
+                temp[i].velocity_x += calcVelocity(force, allParticles[j]) * cos(angle);
+                temp[i].velocity_y += calcVelocity(force, allParticles[j]) * sin(angle);
+
+            }
+        }
+        
+        temp[i] = updatePostion(temp[i], INT_MAX);
+    }
+    
     
     return temp;
 }
