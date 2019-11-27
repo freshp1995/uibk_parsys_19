@@ -196,24 +196,27 @@ double sum_up_force(Particle *particles, int number_of_particles, int index) {
 Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles) {
     Particle *temp = create_particles(number_of_particles);
 
-    #pragma omp for nowait
-    for (int i = 0; i < number_of_particles; i++) {
-    	temp[i] = particles[i];
-    	for(int j = 0; j < number_of_all_particles; j++) {
-    		if(temp[i].identifier != allParticles[j].identifier) {
-    			//printf("m1%d m2%d\n", temp[i].mass, allParticles[i].mass);
+    #pragma omp parallel
+    {
+        #pragma omp for nowait
+        for (int i = 0; i < number_of_particles; i++) {
+            temp[i] = particles[i];
+            for(int j = 0; j < number_of_all_particles; j++) {
+                if(temp[i].identifier != allParticles[j].identifier) {
+                    //printf("m1%d m2%d\n", temp[i].mass, allParticles[i].mass);
 
-				double force = calcForce(temp[i], allParticles[j]);
-				//https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
-				double angle = atan2(temp[i].y - allParticles[j].y,  temp[i].x - allParticles[j].x);
-				temp[i].velocity_x += calcVelocity(force, allParticles[j]) * cos(angle);
-				temp[i].velocity_y += calcVelocity(force, allParticles[j]) * sin(angle);
+                    double force = calcForce(temp[i], allParticles[j]);
+                    //https://gamedev.stackexchange.com/questions/48119/how-do-i-calculate-how-an-object-will-move-from-one-point-to-another
+                    double angle = atan2(temp[i].y - allParticles[j].y,  temp[i].x - allParticles[j].x);
+                    temp[i].velocity_x += calcVelocity(force, allParticles[j]) * cos(angle);
+                    temp[i].velocity_y += calcVelocity(force, allParticles[j]) * sin(angle);
 
-    		}
-    	}
-    	 temp[i] = updatePostion(temp[i], INT_MAX);
+                }
+            }
+            temp[i] = updatePostion(temp[i], INT_MAX);
+        }
+        #pragma omp barrier
     }
-    #pragma omp barrier
     
     return temp;
 }
