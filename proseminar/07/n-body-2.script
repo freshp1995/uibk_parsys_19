@@ -24,6 +24,8 @@ N=10000
 for ((j=2; j < 8; j+=1))
 for (( i=10;i < $N; i+=10 ))
 do
+    # tell OpenMP how many threads to start
+    export OMP_NUM_THREADS=$j
     ./n-body-2 $i 1000 $j
 done
 done
