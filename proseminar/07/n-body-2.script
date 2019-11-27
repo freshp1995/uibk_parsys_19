@@ -12,7 +12,7 @@
 #$ -N n-body
 
 # Redirect output stream to this file.
-#$ -o data_.dat
+#$ -o data-2.dat
 
 # Join the error stream to the output stream.
 #$ -j yes
