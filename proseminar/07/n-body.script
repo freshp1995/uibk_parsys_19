@@ -17,10 +17,14 @@
 # Join the error stream to the output stream.
 #$ -j yes
 
+#$ -pe openmp 8
+
 N=10000
 
+for ((j=2; j < 8; j+=1))
 for (( i=10;i < $N; i+=10 ))
 do
-    ./n-body $i 1000
+    ./n-body $i 1000 $j
+done
 done
 

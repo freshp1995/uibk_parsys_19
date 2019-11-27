@@ -35,7 +35,7 @@ void swap(int *a, int *b);
 void randomize(int arr[], int n);
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 4) {
 		printf("First parameter is the number of particles for each rank, second parameter is the number of timestamps\n");
 		return EXIT_FAILURE;
 	}
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	int numberParticles = atoi(argv[1]);
 	int timestamps = atoi(argv[2]);
 
-    int numProcs = 8;
+    int numProcs = atoi(argv[3]);
 
     Particle* particles = create_particles(numberParticles * numProcs);
     
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     
     gettimeofday(&tv2, NULL);
 
-    printf ("%d;%f;\n",numberParticles * numProcs,
+    printf ("%d;%d;%f;\n",numberParticles * numProcs, numProcs,
             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
             (double) (tv2.tv_sec - tv1.tv_sec));
     
