@@ -50,8 +50,6 @@ int main(int argc, char **argv) {
     
 	init_particles(particles, numberParticles * numProcs);
 
-    Particle *root;
-
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 
@@ -59,18 +57,9 @@ int main(int argc, char **argv) {
     
 
 	for (int i = 0; i < timestamps; i++) {
-        #pragma omp parallel private(root)
-        {
-            int id = omp_get_thread_num();
-            root = calculate_new_timestamp_para(&particles[id * numberParticles], particles, numberParticles, numberParticles * numProcs);
-
-            #pragma omp barrier
-            for (int j = 0; j < numberParticles; j++) {
-                particles[id * numberParticles + j] = root[j];
-            }
-
-            release_particles(root);
-        }
+        Particle *temp = calculate_new_timestamp(particles, particles, numberParticles * numProcs, numberParticles * numProcs);
+        release_particles(particles);
+        particles = temp;
 	}
 
     
@@ -207,6 +196,7 @@ double sum_up_force(Particle *particles, int number_of_particles, int index) {
 Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, int number_of_particles, int number_of_all_particles) {
     Particle *temp = create_particles(number_of_particles);
 
+    #pragma omp for nowait
     for (int i = 0; i < number_of_particles; i++) {
     	temp[i] = particles[i];
     	for(int j = 0; j < number_of_all_particles; j++) {
@@ -223,6 +213,7 @@ Particle *calculate_new_timestamp(Particle *particles, Particle *allParticles, i
     	}
     	 temp[i] = updatePostion(temp[i], INT_MAX);
     }
+    #pragma omp barrier
     
     return temp;
 }

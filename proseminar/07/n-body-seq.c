@@ -49,28 +49,18 @@ int main(int argc, char **argv) {
     Particle* particles = create_particles(numberParticles * numProcs);
     
 	init_particles(particles, numberParticles * numProcs);
-
-    Particle *root;
-
+    
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 
-    omp_set_num_threads(numProcs);
-    
-
 	for (int i = 0; i < timestamps; i++) {
-        #pragma omp parallel private(root)
-        {
-            int id = omp_get_thread_num();
-            root = calculate_new_timestamp_para(&particles[id * numberParticles], particles, numberParticles, numberParticles * numProcs);
-
-            #pragma omp barrier
-            for (int j = 0; j < numberParticles; j++) {
-                particles[id * numberParticles + j] = root[j];
-            }
-
-            release_particles(root);
-        }
+        //seriell
+    
+        Particle *temp = calculate_new_timestamp(particles, particles, numberParticles * numProcs, numberParticles * numProcs);
+        release_particles(particles);
+        particles = temp;
+        
+        //-------------------------
 	}
 
     
@@ -80,7 +70,6 @@ int main(int argc, char **argv) {
             (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
             (double) (tv2.tv_sec - tv1.tv_sec));
     
-
     release_particles(particles);
 
     return EXIT_SUCCESS;
