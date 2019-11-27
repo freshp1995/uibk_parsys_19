@@ -19,7 +19,7 @@
 
 N=10000
 
-for (( i=0;i < $N; i+=10 ))
+for (( i=10;i < $N; i+=10 ))
 do
     ./n-body-seq $i 1000
 done
