@@ -6,6 +6,8 @@ all: pi_seq
 all: pi_mp
 all: matrix_seq
 all: matrix_mp
+all: heat_stencil_2D_seq
+all: heat_stencil_2D_mp
 
 
 pi_seq: pi_seq.c
@@ -20,6 +22,12 @@ matrix_seq: matrix_seq.c
 matrix_mp: matrix_mp.c
 	@$(CC) $(CC_FLAGS) $< -o matrix_mp
 
+heat_stencil_2D_seq: heat_stencil_2D_seq.c
+	@$(CC) $(CC_FLAGS) $< -o heat_stencil_2D_seq
+
+heat_stencil_2D_mp: heat_stencil_2D_mp.c
+	@$(CC) $(CC_FLAGS) $< -o heat_stencil_2D_mp
+
 
 
 
@@ -29,6 +37,8 @@ clean:
 	@rm pi_mp
 	@rm matrix_seq
 	@rm matrix_mp
+	@rm heat_stencil_2D_seq
+	@rm heat_stencil_2D_mp
 
 
 .PHONEY: run
@@ -44,4 +54,10 @@ run: all
 	@echo
 	@echo "matrix_mp"
 	@./matrix_mp
+	@echo
+	@echo "heat_stencil_seq"
+	@./heat_stencil_2D_seq
+	@echo
+	@echo "heat_stencil_2D_mp"
+	@./heat_stencil_2D_mp
 	@echo

@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 	printf("\nFirst matrix:\n");
 	printMatrix(first_array, row_first, column_first);
 
-	printf("\Second matrix:\n");
+	printf("\necond matrix:\n");
 	printMatrix(second_array, row_second, column_second);
 
 	//Carrying out matrix multiplication operation
