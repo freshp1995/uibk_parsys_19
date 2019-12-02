@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <omp.h>
 
 typedef double value_t;
 
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
     }
 
-    int T = N * 500;
+    int T = 5000;
     //printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N, N, T);
 
     //create a buffer
@@ -48,6 +49,7 @@ int main(int argc, char **argv) {
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
+        #pragma omp parallel for
         for (long long i = 0; i < N; i++) {
             for (long long j = 0; j < N; j++) {
                 if (i == Y && j == X) {
@@ -71,6 +73,7 @@ int main(int argc, char **argv) {
             }
         }
 
+        #pragma omp barrier
         Vector H = A;
         A = B;
         B = H;
@@ -87,7 +90,7 @@ int main(int argc, char **argv) {
 
     long elapsed = timediff(start, stop);
     //printf("elapsed: %ld ms\n", elapsed);
-    printf("%ld\n", elapsed);
+    printf("%ld;\n",elapsed);
 
     //release the vector again
     releaseVector(A, N);

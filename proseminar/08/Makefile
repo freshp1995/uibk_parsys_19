@@ -31,6 +31,7 @@ heat_stencil_2D_mp: heat_stencil_2D_mp.c
 
 
 
+
 .PHONEY: clean
 clean:
 	@rm pi_seq
