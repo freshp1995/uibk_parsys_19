@@ -25,13 +25,13 @@ int main(int argc, char *argv[]) {
 	srand(SEED);
 	count = 0;
 
-	#pragma omp parallel for schedule(dynamic) shared(count, niter) private(x,y,z) default(none)
+	#pragma omp parallel for reduction(+:count) schedule(dynamic) shared(niter) private(x,y,z) default(none) 
 	for (int i = 0; i < niter; i++) {
 		x = (double) rand() / RAND_MAX;
 		y = (double) rand() / RAND_MAX;
 		z = x * x + y * y;
 		if (z <= 1)
-			count++;
+			count += 1;
 	}
 	pi = (double) count / niter * 4;
 	//printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
