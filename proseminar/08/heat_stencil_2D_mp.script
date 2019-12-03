@@ -22,6 +22,8 @@
 N=10000
 
 echo "Par"
+
+echo "static"
 export OMP_SCHEDULE=static
 for ((j=1; j < 9; j+=1))
 do
@@ -33,6 +35,7 @@ do
     done
 done
 
+echo "dynamic"
 export OMP_SCHEDULE=dynamic
 for ((j=1; j < 9; j+=1))
 do
@@ -44,6 +47,7 @@ do
     done
 done
 
+echo "guided"
 export OMP_SCHEDULE=guided
 for ((j=1; j < 9; j+=1))
 do
