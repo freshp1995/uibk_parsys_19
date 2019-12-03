@@ -32,7 +32,7 @@ do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
         OUTPUT="$(./pi_mp $i)"
-        echo "${j};${OUTPUT}"
+        echo "${j};${i};${OUTPUT}"
     done
 done
 
@@ -45,7 +45,7 @@ do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
         OUTPUT="$(./pi_mp $i)"
-        echo "${j};${OUTPUT}"
+        echo "${j};${i};${OUTPUT}"
     done
 done
 
@@ -58,12 +58,12 @@ do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
         OUTPUT="$(./pi_mp $i)"
-        echo "${j};${OUTPUT}"
+        echo "${j};${i};${OUTPUT}"
     done
 done
 
 echo "Seq"
  for (( i=10;i < $N; i+=10 ))
 do
-    ./pi_seq $i
+    echo "${i};$(./pi_seq $i)"
 done
