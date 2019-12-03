@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
 	gettimeofday(&tv2, NULL);
 
-    printf ("%d;%f;\n",pi, (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
+    printf ("%f;%f;\n",pi, (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
 
 	return EXIT_SUCCESS;
 }
