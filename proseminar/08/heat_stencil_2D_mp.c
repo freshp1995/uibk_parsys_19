@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 #include <omp.h>
 
@@ -45,7 +46,8 @@ int main(int argc, char **argv) {
     //create a second buffer for the computation
     Vector B = createVector(N);
     
-    time_t start = clock();
+    struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        #pragma omp barrier
+        
         Vector H = A;
         A = B;
         B = H;
@@ -85,12 +87,10 @@ int main(int argc, char **argv) {
 
     releaseVector(B, N);
 
-    time_t stop = clock();
-   // printf("Verification: %s\n", (verify(A, N)) ? "OK" : "FAILED");
+    gettimeofday(&tv2, NULL);
 
-    long elapsed = timediff(start, stop);
-    //printf("elapsed: %ld ms\n", elapsed);
-    printf("%ld;\n",elapsed);
+    printf ("%f;\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
+    
 
     //release the vector again
     releaseVector(A, N);

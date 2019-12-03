@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
+#include <omp.h>
 
 typedef double value_t;
 
@@ -50,6 +51,7 @@ int main(int argc, char **argv) {
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
+        #pragma omp parallel for
         for (long long i = 0; i < N; i++) {
             for (long long j = 0; j < N; j++) {
                 if (i == Y && j == X) {
@@ -73,6 +75,7 @@ int main(int argc, char **argv) {
             }
         }
 
+        
         Vector H = A;
         A = B;
         B = H;
@@ -87,7 +90,6 @@ int main(int argc, char **argv) {
     gettimeofday(&tv2, NULL);
 
     printf ("%f;\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
-
 
     //release the vector again
     releaseVector(A, N);

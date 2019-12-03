@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
+
 #define SEED 35791246
 
 int main(int argc, char *argv[]) {
@@ -24,6 +27,9 @@ int main(int argc, char *argv[]) {
 	/* initialize random numbers */
 	srand(SEED);
 	count = 0;
+
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
 	for (int i = 0; i < niter; i++) {
 		x = (double) rand() / RAND_MAX;
 		y = (double) rand() / RAND_MAX;
@@ -33,7 +39,11 @@ int main(int argc, char *argv[]) {
 	}
 	pi = (double) count / niter * 4;
 	//printf("# of samples= %d , estimate of pi is %g \n", niter, pi);
-	printf("%d; %g\n", niter, pi);
+	//printf("%d; %g\n", niter, pi);
+
+	gettimeofday(&tv2, NULL);
+
+    printf ("%d;%f;\n",pi, (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
 
 	return EXIT_SUCCESS;
 }

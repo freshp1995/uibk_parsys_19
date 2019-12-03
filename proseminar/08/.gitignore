@@ -3,4 +3,5 @@ matrix_seq
 pi_mp
 pi_seq
 heat_stencil_2D_mp
+heat_stencil_2D_mp_opt
 heat_stencil_2D_seq

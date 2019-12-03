@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 
 #define SEED 539147254
 
@@ -41,11 +43,14 @@ int main(int argc, char *argv[]) {
 	fillMatrix(first_array, row_first, column_first);
 	fillMatrix(second_array, row_second, column_second);
 
-	printf("\nFirst matrix:\n");
-	printMatrix(first_array, row_first, column_first);
+	//printf("\nFirst matrix:\n");
+	//printMatrix(first_array, row_first, column_first);
 
-	printf("\nSecond matrix:\n");
-	printMatrix(second_array, row_second, column_second);
+	//printf("\nSecond matrix:\n");
+	//printMatrix(second_array, row_second, column_second);
+
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
 
 	//Carrying out matrix multiplication operation
 	#pragma omp parallel for schedule(dynamic) shared(row_first, row_second, column_second,first_array,second_array, result_array, sum) default(none)
@@ -60,9 +65,13 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	gettimeofday(&tv2, NULL);
+
+    printf ("%f;\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 + (double) (tv2.tv_sec - tv1.tv_sec));
+
 	//Printing the final product matrix
-	printf("\nThe product of entered matrices is:\n");
-	printMatrix(result_array, row_first, column_second);
+	//printf("\nThe product of entered matrices is:\n");
+	//printMatrix(result_array, row_first, column_second);
 
 	releaseMatrix(result_array);
 	releaseMatrix(first_array);

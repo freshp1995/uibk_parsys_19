@@ -12,7 +12,7 @@
 #$ -N n-body
 
 # Redirect output stream to this file.
-#$ -o data-seq.dat
+#$ -o data-stencil.dat
 
 # Join the error stream to the output stream.
 #$ -j yes
@@ -21,6 +21,7 @@
 
 N=10000
 
+echo "Par"
 export OMP_SCHEDULE=static
 for ((j=1; j < 9; j+=1))
 do
@@ -52,4 +53,11 @@ do
         export OMP_NUM_THREADS=$j
         ./heat_stencil_2D_mp $i
     done
+done
+
+echo "Seq"
+
+for (( i=10;i < $N; i+=10 ))
+do
+    ./heat_stencil_2D_seq $i
 done
