@@ -1,5 +1,6 @@
 matrix_mp
 matrix_seq
+matrix_mp_opt
 pi_mp
 pi_seq
 heat_stencil_2D_mp
