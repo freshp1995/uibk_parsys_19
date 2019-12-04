@@ -45,13 +45,19 @@ int main(int argc, char **argv) {
 
     //create a second buffer for the computation
     Vector B = createVector(N);
+
+    value_t tc;
+    value_t t_above;
+    value_t t_left;
+    value_t t_right;
+    value_t t_below;
     
     struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
     //for each time step
     for (int t = 0; t < T; t++) {
         //we propagate the temparature
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(2) shared(B) firstprivate(A) private(tc, t_above, t_left, t_right, t_below)
         for (long long i = 0; i < N; i++) {
             for (long long j = 0; j < N; j++) {
                 if (i == Y && j == X) {
@@ -60,13 +66,13 @@ int main(int argc, char **argv) {
                 }
 
                 //get temperatur at current position
-                value_t tc = A[i][j];
+                tc = A[i][j];
 
                 //get temperatur of adjacent cells
-                value_t t_above = (i != 0) ? A[i - 1][j] : tc;
-                value_t t_left = (j != 0) ? A[i][j - 1] : tc;
-                value_t t_right = (j != N - 1) ? A[i][j + 1] : tc;
-                value_t t_below = (i != N - 1) ? A[i + 1][j] : tc;
+                t_above = (i != 0) ? A[i - 1][j] : tc;
+                t_left = (j != 0) ? A[i][j - 1] : tc;
+                t_right = (j != N - 1) ? A[i][j + 1] : tc;
+                t_below = (i != N - 1) ? A[i + 1][j] : tc;
 
                 B[i][j] = tc + 0.2 * (
                         t_above + t_left + 
@@ -80,9 +86,9 @@ int main(int argc, char **argv) {
         A = B;
         B = H;
 
-        if (!(t % 1000)) {
+        //if (!(t % 1000)) {
             //printf("Current timestamp t=%d\n", t);
-        }
+        //}
     }
 
     releaseVector(B, N);
