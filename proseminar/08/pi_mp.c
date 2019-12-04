@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 
-	#pragma omp parallel for reduction(+:count) schedule(dynamic) private(x,y,z, niter) default(none) 
+	#pragma omp parallel for reduction(+:count) schedule(dynamic) private(x,y,z) firstprivate(niter) default(none) 
 	for (int i = 0; i < niter; i++) {
 		x = (double) rand() / RAND_MAX;
 		y = (double) rand() / RAND_MAX;
