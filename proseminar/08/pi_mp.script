@@ -19,7 +19,7 @@
 
 #$ -pe openmp 8
 
-N=1000
+N=100000
 
 echo "Para"
 
