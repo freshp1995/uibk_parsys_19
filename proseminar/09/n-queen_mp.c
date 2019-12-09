@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
+
+
 #define MAXN 31
  
 int nqueens(int n)
@@ -13,7 +16,8 @@ int nqueens(int n)
   // The top level is two fors, to save one bit of symmetry in the enumeration by forcing second queen to
   // be AFTER the first queen.
   //
-  #pragma omp parallel for schedule(guided) shared(num) private(cols,diagl,diagr,posibs,n) default(none) 
+  printf("tst");
+  #pragma omp parallel for schedule(guided) shared(num, n) private(cols,diagl,diagr,posibs) default(none) 
   for (int q0=0; q0<n-2; q0++) {
     for (int q1=q0+2; q1<n; q1++){
       int bit0 = 1<<q0;
