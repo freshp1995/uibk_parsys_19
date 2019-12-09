@@ -7,14 +7,14 @@ all: n-queen_opt
 all: n-queen_mp
 
 
-queen: queen.c
-	@$(CC) $(CC_FLAGS) $< -o queen
+n-queen: n-queen.c
+	@$(CC) $(CC_FLAGS) $< -o n-queen
 
-queen_opt: queen_opt.c
-	@$(CC) $(CC_FLAGS) $< -o queen_opt
+n-queen_opt: n-queen_opt.c
+	@$(CC) $(CC_FLAGS) $< -o n-queen_opt
 	
-queen_mp: queen_mp.c
-	@$(CC) $(CC_FLAGS) $< -o queen_mp
+n-queen_mp: n-queen_mp.c
+	@$(CC) $(CC_FLAGS) $< -o n-queen_mp
 
 
 
@@ -22,20 +22,20 @@ queen_mp: queen_mp.c
 
 .PHONEY: clean
 clean:
-	@rm queen
-	@rm queen_opt
-	@rm queen_mp
+	@rm n-queen
+	@rm n-queen_opt
+	@rm n-queen_mp
 
 
 
 .PHONEY: run
 run: all
 	@echo "queen"
-	@./queen
+	@./n-queen
 	@echo
 	@echo "queen_opt"
-	@./queen_opt
+	@./n-queen_opt
 	@echo
 	@echo "queen_mp"
-	@./queen_mp
+	@./n-queen_mp
 	@echo
