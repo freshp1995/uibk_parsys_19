@@ -21,7 +21,7 @@
 
 N=30
 
-for (( i=2;i < $N; i+=1 ))
+for (( i=2;i < $N; i+=5 ))
 do
     OUTPUT="$(./n-queen_opt $i)"
     echo "${i};${OUTPUT}"

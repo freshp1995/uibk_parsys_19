@@ -26,7 +26,7 @@ echo "static"
 export OMP_SCHEDULE=static
 for ((j=1; j < 9; j+=1))
 do
-    for (( i=2;i < $N; i+=1 ))
+    for (( i=2;i < $N; i+=5 ))
     do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
@@ -39,7 +39,7 @@ echo "dynamic"
 export OMP_SCHEDULE=dynamic
 for ((j=1; j < 9; j+=1))
 do
-    for (( i=2;i < $N; i+=1 ))
+    for (( i=2;i < $N; i+=5 ))
     do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
@@ -52,7 +52,7 @@ echo "guided"
 export OMP_SCHEDULE=guided
 for ((j=1; j < 9; j+=1))
 do
-    for (( i=2;i < $N; i+=1 ))
+    for (( i=2;i < $N; i+=5 ))
     do
         # tell OpenMP how many threads to start
         export OMP_NUM_THREADS=$j
