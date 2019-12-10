@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
  
 int count = 0;
 int solve(int n, int col, int *hist, int print)
@@ -52,8 +53,14 @@ int main(int argc, char **argv)
 	int hist[n];
 	
 	
-	printf("Number of solution for %d is %d\n",n,solve(n, 0, hist,print));
-  
+	clock_t begin = clock();
+  	int result = solve(n, 0, hist,print);
+  	clock_t end = clock();
+
+  	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  	printf("%f\n", time_spent);
+
+  	//printf("Number of solution for %d is %d\n",n,result);
 	
 	return EXIT_SUCCESS;
 

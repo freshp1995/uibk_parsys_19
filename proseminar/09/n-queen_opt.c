@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
 #define MAXN 31
  
 int nqueens(int n)
@@ -70,7 +72,14 @@ int main(int argc, char **argv)
     printf("n must be between 2 and 31!\n");
   }
   
-  printf("Number of solution for %d is %d\n",n,nqueens(n));
+  clock_t begin = clock();
+  int result = nqueens(n);
+  clock_t end = clock();
+
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("%f\n", time_spent);
+
+  printf("Number of solution for %d is %d\n",n,result);
   
   return EXIT_SUCCESS;
   
