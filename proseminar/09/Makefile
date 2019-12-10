@@ -5,6 +5,7 @@ CC_FLAGS=-O0 -g -ggdb -std=c99 -Wall -Wextra -pedantic -lm -fopenmp
 all: n-queen
 all: n-queen_opt
 all: n-queen_mp
+all: n-queen_mp_task
 
 
 n-queen: n-queen.c
@@ -16,6 +17,9 @@ n-queen_opt: n-queen_opt.c
 n-queen_mp: n-queen_mp.c
 	@$(CC) $(CC_FLAGS) $< -o n-queen_mp
 
+n-queen_mp_task: n-queen_mp_task.c
+	@$(CC) $(CC_FLAGS) $< -o n-queen_mp_task
+
 
 
 
@@ -25,6 +29,7 @@ clean:
 	@rm n-queen
 	@rm n-queen_opt
 	@rm n-queen_mp
+	@rm n-queen_mp_task
 
 
 
