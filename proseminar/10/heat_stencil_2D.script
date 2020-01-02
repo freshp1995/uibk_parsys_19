@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+# Execute job in the queue "std.q" unless you have special requirements.
+#$ -q std.q
+
+# The batch system should use the current directory as working directory.
+#$ -cwd
+
+# Name your job. Unless you use the -o and -e options, output will
+# go to a unique file name.ojob_id for each job.
+#$ -N heat_stencil_2D
+
+# Redirect output stream to this file.
+#$ -o heat_stencil_2D.dat
+
+# Join the error stream to the output stream.
+#$ -j yes
+
+#$ -pe openmp 8
+
+#N=30
+
+#for (( i=2;i < $N; i+=5 ))
+#do
+#    OUTPUT="$(./n-queen $i)"
+#    echo "${i};${OUTPUT}"
+#done
