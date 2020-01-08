@@ -11,7 +11,7 @@ typedef double value_t;
 
 typedef value_t **Vector;
 
-Vector createVector(int N);
+Vector createVector(int N, int M);
 
 void releaseVector(Vector m, int size);
 
@@ -28,152 +28,103 @@ void insertColumn(value_t *c, int pos, Vector m, int size);
 // -- simulation code ---
 
 int main(int argc, char **argv) {
+    //width of stencil field
     int N_big = 10; 
+
+    //number of timestamps
+    int T = 1000;
     if (argc > 1) {
         N_big = atoi(argv[1]);
     }
     
-    
+    /* initialize mpi*/
 	int rank;
 	int numProcs;
-
-	/* initialize mpi*/
 	MPI_Init(&argc, &argv);
-
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-	
-	if(roundf(sqrt(numProcs)) != sqrt(numProcs)) {
-		printf("Square root of rank size must be a natural number\n");
-		MPI_Finalize();
-		return EXIT_FAILURE;
-	}
-  
-  
 
-    int T = N_big * 500;
-   	
+    //start calculation----------------------------------------------------------------------------------
 	//+2 because left and right ghost cell
-	int N = (N_big/sqrt(numProcs)) + 2;
-	
-	Vector A = createVector(N);
-	Vector B = createVector(N);
+    int temp_val = ceil((double)N_big/numProcs);
+	int N = rank == numProcs - 1 && N_big % temp_val != 0 ? N_big % temp_val : temp_val;
 
-	//fill the array
+	//the position of the heat-source
 	int X = N_big / 4;
 	int Y = N_big / 5;
-	
-	MPI_Comm newComm;
-    int dims[] = {sqrt(numProcs),sqrt(numProcs)};
-    int periods[] = {1,1};
-    int reorder = 0;
-	
-	MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, reorder, &newComm);
 
+
+    //recieve send data
+    int vec_size = N;
+    Vector A = createVector(vec_size + 2, N_big);
+    Vector B = createVector(vec_size + 2, N_big);
+
+    //create the stencil field
 	if(rank == 0) {
-		 printf("Computing heat-distribution for romm size %dx%d for %d timestamps\n", N_big, N_big, T);
-
-
-		//create a buffer
-		Vector A_big = createVector(N_big);
-
-
+        //create a buffer
+		Vector A_big = createVector(N_big, N_big);
 		fill_vector(A_big, N_big, X, Y);
-
-		
-
-		//create a second buffer for the computation
-		Vector B_big = createVector(N_big);
-		
-
-		
-		for(int i = 0; i < numProcs; i++) {
-			MPI_Datatype subArray;
-			int coords[2];
-			MPI_Cart_coords(newComm, i, 2, coords);
-			
-			int array_size[] = {N_big,N_big};
-			int array_subsize[] = {N-2,N-2};
-			int array_start[] = {coords[0]*array_subsize[0],coords[1]*array_subsize[1]}; 
-
-			MPI_Type_create_subarray(2, array_size, array_subsize, array_start, MPI_ORDER_C, MPI_DOUBLE, &subArray);
-			MPI_Type_commit(&subArray);
-			
-			MPI_Send(&(A_big[0][0]), 1, subArray, i, 0, newComm);
-			MPI_Send(&(B_big[0][0]), 1, subArray, i, 0, newComm);
-			
-		    MPI_Type_free(&subArray);
-		    
+        
+        //copy for rank 0
+        for (int i = 1; i < vec_size + 1; i++) {
+            for (int j = 0; j < N_big; j++) {
+                A[i][j] = A_big[i - 1][j];
+                
+            }  
+        }
+        
+		for(int i = 1; i < numProcs; i++) {
+            int vec_size = i == numProcs - 1 && N_big % temp_val != 0 ? N_big % temp_val : temp_val; 
+            MPI_Send(&(A_big[i * N][0]), N_big * vec_size, MPI_DOUBLE, i, 42, MPI_COMM_WORLD);
+            	    
 		}
-		
-		
-		
+			
 		releaseVector(A_big, N_big);
-		releaseVector(B_big,N_big);
-		
-
-    
 	}
 	
+    if (rank != 0) {
+	    MPI_Recv(&(A[1][0]), (N_big)*(vec_size), MPI_DOUBLE, 0, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
 	
-	
-	//A[1][1] - first cell left out for ghost cells
-	MPI_Recv(&(A[1][1]), (N-2)*(N-2), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
-    MPI_Recv(&(B[1][1]), (N-2)*(N-2), MPI_DOUBLE, 0, 0, newComm, MPI_STATUS_IGNORE);
-    
-    printf("Recive subarray size %d \n", (N-2)*(N-2));
-    
-
-    value_t ghost_left[N];
-    value_t ghost_right[N];
-    value_t ghost_up[N];
-    value_t ghost_down[N];
-
-
-	int left_rank;
-	int right_rank;
-	int up_rank;
-	int down_rank;
-	MPI_Cart_shift(newComm, 0, 1, &left_rank, &right_rank);
-	MPI_Cart_shift(newComm, 1, 1, &up_rank, &down_rank);
     
     //for each time step
+    MPI_Request send_above_request;
+    MPI_Request send_below_request;
+
+    
     time_t start = time(NULL);
     for (int t = 0; t < T; t++) {
 		
-		MPI_Send(&A[1], N, MPI_DOUBLE, up_rank, 0, newComm);
 		
-		MPI_Send(&A[N-2], N, MPI_DOUBLE, down_rank, 0, newComm);
-		
-		value_t *tempArray = getColumn(1,A,N);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, left_rank, 0, newComm);
-		
-		tempArray = getColumn(N-2,A,N);
-		MPI_Send(&tempArray, N, MPI_DOUBLE, right_rank, 0, newComm);
-		
-		free(tempArray);
-		
-		MPI_Recv(&(ghost_up[0]), N, MPI_DOUBLE, up_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_down[0]), N, MPI_DOUBLE, down_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_left[0]), N, MPI_DOUBLE, left_rank, 0, newComm, MPI_STATUS_IGNORE);
-		MPI_Recv(&(ghost_right[0]), N, MPI_DOUBLE, right_rank, 0, newComm, MPI_STATUS_IGNORE);
-		
-		A[0] = ghost_up;
-		A[N-1] = ghost_down;
-		B[0] = ghost_up;
-		B[N-1] = ghost_down;
-		insertColumn(ghost_left, 0, A, N);
-		insertColumn(ghost_left, 0, B, N);
-		insertColumn(ghost_right, N, A, N);
-		insertColumn(ghost_right, N, B, N);
+        //send line below
+        if (rank != numProcs - 1) {
+            MPI_Isend(&(A[vec_size][0]), N_big, MPI_DOUBLE, rank + 1, 41, MPI_COMM_WORLD, &send_below_request);
+        }
 
-		
-        //we propagate the temparature
+        //get line above
+        if (rank != 0) {
+            MPI_Irecv(&(A[0][0]), N_big, MPI_DOUBLE, rank - 1, 41, MPI_COMM_WORLD, &send_below_request);
+        }
+        
+        //send line above
+        if (rank != 0) {
+            MPI_Isend(&(A[1][0]), N_big, MPI_DOUBLE, rank - 1, 40, MPI_COMM_WORLD, &send_above_request);
+        }
 
-        #pragma omp parallel for schedule(guided) shared(A, B) default(none) 
-        for (long long i = 0; i < N; i++) {
-            for (long long j = 0; j < N; j++) {
-                if (i == Y && j == X) {
+
+        //get line below
+        if (rank != numProcs - 1) {
+            MPI_Irecv(&(A[vec_size + 1][0]), N_big, MPI_DOUBLE, rank + 1, 40, MPI_COMM_WORLD, &send_above_request);
+        }
+
+        MPI_Wait(&send_below_request, MPI_STATUS_IGNORE);
+        MPI_Wait(&send_above_request, MPI_STATUS_IGNORE);
+
+        
+        #pragma omp parallel for schedule(guided) shared(A, B) firstprivate(N, Y, X, vec_size, rank, N_big, numProcs) default(none) 
+        for (long long i = 1; i < vec_size + 1; i++) {
+            for (long long j = 0; j < N_big; j++) {
+                if (i - 1 == Y && j == X) {
                     B[i][j] = A[i][j];
                     continue;
                 }
@@ -182,10 +133,10 @@ int main(int argc, char **argv) {
                 value_t tc = A[i][j];
 
                 //get temperatur of adjacent cells
-                value_t t_above = (i != 0) ? A[i - 1][j] : tc;
+                value_t t_above = (rank != 0 || i != 1) ? A[i - 1][j] : tc;
                 value_t t_left = (j != 0) ? A[i][j - 1] : tc;
-                value_t t_right = (j != N - 1) ? A[i][j + 1] : tc;
-                value_t t_below = (i != N - 1) ? A[i + 1][j] : tc;
+                value_t t_right = (j != N_big - 1) ? A[i][j + 1] : tc;
+                value_t t_below = (rank != numProcs - 1 || i != vec_size) ? A[i + 1][j] : tc;
 
                 B[i][j] = tc + 0.2 * (
                         t_above + t_left + 
@@ -197,60 +148,76 @@ int main(int argc, char **argv) {
         Vector H = A;
         A = B;
         B = H;
-
-		if(rank == 0) {
-			if (!(t % 1000)) {
-				printf("Current timestamp t=%d\n", t);
-			}
-		}
     }
-    time_t stop = time(NULL);
 
-    releaseVector(B, N);
-
-    printf("Verification from rank %d: %s\n", rank, (verify(A, N)) ? "OK" : "FAILED");
+    //gather everything
+    Vector A_big = createVector(N_big, N_big);
     
-    
-    //release the vector again
-    releaseVector(A, N);
+    MPI_Request *gath = malloc((numProcs - 1) * sizeof(MPI_Request));
+    if (!gath) {
+        perror("Could not allocate memory");
+        releaseVector(A_big, N_big);
+        releaseVector(B, vec_size + 2);
+        releaseVector(A, vec_size + 2);
+        MPI_Finalize();
 
-	if(rank == 0) {
+        return EXIT_SUCCESS;
+    }
 
-		printf("The Program took %ld to execute\n", stop - start);
-	}
+    if (rank != 0) {
+        MPI_Isend(&(A[1][0]), N_big * vec_size, MPI_DOUBLE, 0, 30, MPI_COMM_WORLD, &(gath[rank - 1]));
+    } else {
+        for (int i = 1; i < vec_size + 1;i++) {
+            for (int j = 0; j < N_big; j++) {
+                A_big[i-1][j] = A[i][j];
+            }
+        }
 
-    
+        for (int i = 1; i < numProcs; i++) {
+            MPI_Irecv(&(A_big[i * vec_size][0]), N_big * vec_size, MPI_DOUBLE, i, 30, MPI_COMM_WORLD,&(gath[i - 1]));
+            MPI_Wait(&(gath[i - 1]), MPI_STATUS_IGNORE);
+        }
+    }
+
+    if (rank == 0) {
+        printf("Result: \n");
+       for (int i = 0;i < N_big; i++) {
+            for (int j = 0; j < N_big; j++) {
+                printf("%f (%d-%d: %d)\t", A_big[i][j],i,j, rank);
+            }
+            printf("\n");
+        }
+    }
+
+
+    free(gath);
+    releaseVector(A_big, N_big);
+    releaseVector(B, vec_size + 2);
+    releaseVector(A, vec_size + 2);
     MPI_Finalize();
 
     return EXIT_SUCCESS;
 }
 
-Vector createVector(int N) {
-    Vector y = malloc(sizeof(value_t) * N);
+Vector createVector(int N, int M) {
+    value_t *data = calloc(N * M, sizeof(value_t));
+    Vector arr = calloc(N, sizeof(value_t *));
 
-    if (y == NULL) {
+    if (data == NULL || arr == NULL) {
         perror("Could not allocate memory");
         return NULL;
     }
 
     for (int i = 0; i < N; i++) {
-        y[i] = malloc(sizeof(value_t) * N);
-
-        if (y[i] == NULL) {
-            perror("Could not allocate memory");
-            return NULL;
-        }
+        arr[i] = &(data[i*M]);
     }
 
-    return y;
+    return arr;
 }
 
 void releaseVector(Vector m, int size) {
-    for (int i = 0; i < size; i++) {
-        //free(m[i]);
-    }
-
-    //free(m);
+    free(m[0]);
+    free(m);
 }
 
 void fill_vector(Vector m, int size, int x, int y) {
