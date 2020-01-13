@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (rank == 0) {
+    /*if (rank == 0) {
         printf("Result: \n");
        for (int i = 0;i < N_big; i++) {
             for (int j = 0; j < N_big; j++) {
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
             }
             printf("\n");
         }
-    }
+    }*/
 
 
     free(gath);
