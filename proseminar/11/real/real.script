@@ -26,7 +26,7 @@ for ((j=1; j < 9; j+=1))
 do
     #tell OpenMP how many threads to start
     export OMP_NUM_THREADS=$j
-    echo "${j}""
+    echo "${j}"
     time ./real &> /dev/null
     
 done
