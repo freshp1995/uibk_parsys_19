@@ -459,7 +459,6 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
   double r1[M], r2[M];
 
   if (timeron) timer_start(T_psinv);
-  //#pragma omp parallel for collapse(2) shared(u,c,r,r1,r2) firstprivate(n1,n3,n2) default(none)
   for (int i3 = 1; i3 < n3-1; i3++) {
     for (int i2 = 1; i2 < n2-1; i2++) {
 		
@@ -530,7 +529,6 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
   double u1[M], u2[M];
 
   if (timeron) timer_start(T_resid);
-  //#pragma omp parallel for collapse(2) shared(u,v,r,a,i1,n1,u1,u2) firstprivate(n3,n2) lastprivate(i2,i3) default(none)
   for (int i3 = 1; i3 < n3-1; i3++) {
     for (int i2 = 1; i2 < n2-1; i2++) {
 		
@@ -694,8 +692,7 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
   if (timeron) timer_start(T_interp);
   if (n1 != 3 && n2 != 3 && n3 != 3) {
 	  
-	//#pragma omp parallel for collapse(2) shared(z,z1,z2,z3,mm1,u,i1,mm2,mm3) lastprivate(i3,i2) default(none)
-    for (i3 = 0; i3 < mm3-1; i3++) {
+	for (i3 = 0; i3 < mm3-1; i3++) {
       for (i2 = 0; i2 < mm2-1; i2++) {
 		  
 		#pragma omp parallel for shared(z,z1,z2,z3,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
