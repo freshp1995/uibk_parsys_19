@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <omp.h>
 
 #include "globals.h"
 #include "randdp.h"
@@ -393,9 +392,7 @@ static void mg3P(double u[], double v[], double r[],
   // down cycle.
   // restrict the residual from the find grid to the coarse
   //---------------------------------------------------------------------
-  #pragma omp parallel for ordered shared(lt,ir,r,lb) firstprivate(m1,m2,m3,j) default(none) lastprivate(k)
   for (k = lt; k >= lb+1; k--) {
-	#pragma omp ordered
     j = k - 1;
     rprj3(&r[ir[k]], m1[k], m2[k], m3[k],
           &r[ir[j]], m1[j], m2[j], m3[j], k);
@@ -408,9 +405,7 @@ static void mg3P(double u[], double v[], double r[],
   zero3(&u[ir[k]], m1[k], m2[k], m3[k]);
   psinv(&r[ir[k]], &u[ir[k]], m1[k], m2[k], m3[k], c, k);
 
-  #pragma omp parallel for ordered shared(lb,lt,ir, u, r) firstprivate(m1,m2,m3,a,c) default(none) lastprivate(k) reduction(-:j)
   for (k = lb+1; k <= lt-1; k++) {
-	 #pragma omp ordered
     j = k - 1;
 
     //---------------------------------------------------------------------
@@ -455,38 +450,31 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
   double (*r)[n2][n1] = (double (*)[n2][n1])or;
   double (*u)[n2][n1] = (double (*)[n2][n1])ou;
 
+  int i3, i2, i1;
 
   double r1[M], r2[M];
 
   if (timeron) timer_start(T_psinv);
-  for (int i3 = 1; i3 < n3-1; i3++) {
-    for (int i2 = 1; i2 < n2-1; i2++) {
-		
-	  {
-		  #pragma omp parallel for shared(r1,r2,r,n1) firstprivate(i2,i3)  default(none)
-		  for (int i1 = 0; i1 < n1; i1++) {
-			r1[i1] = r[i3][i2-1][i1] + r[i3][i2+1][i1]
-				   + r[i3-1][i2][i1] + r[i3+1][i2][i1];
-			r2[i1] = r[i3-1][i2-1][i1] + r[i3-1][i2+1][i1]
-				   + r[i3+1][i2-1][i1] + r[i3+1][i2+1][i1];
-		  }
-	  }
-      
-	  {
-		  #pragma omp parallel for shared(r1,r2,r,u,c,n1) firstprivate(i2,i3) default(none)
-		  for (int i1 = 1; i1 < n1-1; i1++) {
-			u[i3][i2][i1] = u[i3][i2][i1]
-						  + c[0] * r[i3][i2][i1]
-						  + c[1] * ( r[i3][i2][i1-1] + r[i3][i2][i1+1]
-								   + r1[i1] )
-						  + c[2] * ( r2[i1] + r1[i1-1] + r1[i1+1] );
-			//--------------------------------------------------------------------
-			// Assume c[3] = 0    (Enable line below if c[3] not= 0)
-			//--------------------------------------------------------------------
-			//            + c[3] * ( r2[i1-1] + r2[i1+1] )
-			//--------------------------------------------------------------------
-		  }
-	  }
+  for (i3 = 1; i3 < n3-1; i3++) {
+    for (i2 = 1; i2 < n2-1; i2++) {
+      for (i1 = 0; i1 < n1; i1++) {
+        r1[i1] = r[i3][i2-1][i1] + r[i3][i2+1][i1]
+               + r[i3-1][i2][i1] + r[i3+1][i2][i1];
+        r2[i1] = r[i3-1][i2-1][i1] + r[i3-1][i2+1][i1]
+               + r[i3+1][i2-1][i1] + r[i3+1][i2+1][i1];
+      }
+      for (i1 = 1; i1 < n1-1; i1++) {
+        u[i3][i2][i1] = u[i3][i2][i1]
+                      + c[0] * r[i3][i2][i1]
+                      + c[1] * ( r[i3][i2][i1-1] + r[i3][i2][i1+1]
+                               + r1[i1] )
+                      + c[2] * ( r2[i1] + r1[i1-1] + r1[i1+1] );
+        //--------------------------------------------------------------------
+        // Assume c[3] = 0    (Enable line below if c[3] not= 0)
+        //--------------------------------------------------------------------
+        //            + c[3] * ( r2[i1-1] + r2[i1+1] )
+        //--------------------------------------------------------------------
+      }
     }
   }
   if (timeron) timer_stop(T_psinv);
@@ -525,38 +513,30 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
   double (*v)[n2][n1] = (double (*)[n2][n1])ov;
   double (*r)[n2][n1] = (double (*)[n2][n1])or;
 
-
+  int i3, i2, i1;
   double u1[M], u2[M];
 
   if (timeron) timer_start(T_resid);
-  for (int i3 = 1; i3 < n3-1; i3++) {
-    for (int i2 = 1; i2 < n2-1; i2++) {
-		
-	  {
-		 #pragma omp parallel for shared(u,u1,u2,n1) firstprivate(i2,i3) default(none)
-		  for (int i1 = 0; i1 < n1; i1++) {
-			u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
-				   + u[i3-1][i2][i1] + u[i3+1][i2][i1];
-			u2[i1] = u[i3-1][i2-1][i1] + u[i3-1][i2+1][i1]
-				   + u[i3+1][i2-1][i1] + u[i3+1][i2+1][i1];
-		  }
-	  }
-      
-	  {
-		  #pragma omp parallel for shared(a,u,v,u1,u2,r,n1) firstprivate(i2,i3) default(none)
-		  for (int i1 = 1; i1 < n1-1; i1++) {
-			r[i3][i2][i1] = v[i3][i2][i1]
-						  - a[0] * u[i3][i2][i1]
-			//-------------------------------------------------------------------
-			//  Assume a[1] = 0      (Enable 2 lines below if a[1] not= 0)
-			//-------------------------------------------------------------------
-			//            - a[1] * ( u[i3][i2][i1-1] + u[i3][i2][i1+1]
-			//                     + u1[i1] )
-			//-------------------------------------------------------------------
-						  - a[2] * ( u2[i1] + u1[i1-1] + u1[i1+1] )
-						  - a[3] * ( u2[i1-1] + u2[i1+1] );
-		  }
-	  }
+  for (i3 = 1; i3 < n3-1; i3++) {
+    for (i2 = 1; i2 < n2-1; i2++) {
+      for (i1 = 0; i1 < n1; i1++) {
+        u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
+               + u[i3-1][i2][i1] + u[i3+1][i2][i1];
+        u2[i1] = u[i3-1][i2-1][i1] + u[i3-1][i2+1][i1]
+               + u[i3+1][i2-1][i1] + u[i3+1][i2+1][i1];
+      }
+      for (i1 = 1; i1 < n1-1; i1++) {
+        r[i3][i2][i1] = v[i3][i2][i1]
+                      - a[0] * u[i3][i2][i1]
+        //-------------------------------------------------------------------
+        //  Assume a[1] = 0      (Enable 2 lines below if a[1] not= 0)
+        //-------------------------------------------------------------------
+        //            - a[1] * ( u[i3][i2][i1-1] + u[i3][i2][i1+1]
+        //                     + u1[i1] )
+        //-------------------------------------------------------------------
+                      - a[2] * ( u2[i1] + u1[i1-1] + u1[i1+1] )
+                      - a[3] * ( u2[i1-1] + u2[i1+1] );
+      }
     }
   }
   if (timeron) timer_stop(T_resid);
@@ -591,7 +571,7 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
   double (*r)[m2k][m1k] = (double (*)[m2k][m1k])or;
   double (*s)[m2j][m1j] = (double (*)[m2j][m1j])os;
 
-  int i3, i2, i1, d1, d2, d3, j;
+  int j3, j2, j1, i3, i2, i1, d1, d2, d3, j;
 
   double x1[M], y1[M], x2, y2;
 
@@ -614,40 +594,31 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
     d3 = 1;
   }
 
-  #pragma omp parallel for shared(x1,x2,y1,y2,r,s,m1j,d2,d3,d1,m3j,m2j,i1,i2) firstprivate(i3) default(none)
-  for (int j3 = 1; j3 < m3j-1; j3++) {
+  for (j3 = 1; j3 < m3j-1; j3++) {
     i3 = 2*j3-d3;
-    #pragma omp parallel for shared(x1,x2,y1,y2,r,s,m1j,d2,d3,d1,m3j,m2j,i1,j3) firstprivate(i2,i3) default(none)
-    for (int j2 = 1; j2 < m2j-1; j2++) {
+    for (j2 = 1; j2 < m2j-1; j2++) {
       i2 = 2*j2-d2;
 
-	  {
-		  #pragma omp parallel for shared(r,x1,y1,d1,m1j) firstprivate(i1,i2,i3)  default(none)
-		  for (int j1 = 1; j1 < m1j; j1++) {
-			i1 = 2*j1-d1;
-			x1[i1] = r[i3+1][i2  ][i1] + r[i3+1][i2+2][i1]
-				   + r[i3  ][i2+1][i1] + r[i3+2][i2+1][i1];
-			y1[i1] = r[i3  ][i2  ][i1] + r[i3+2][i2  ][i1]
-				   + r[i3  ][i2+2][i1] + r[i3+2][i2+2][i1];
-		  }
-	  }
+      for (j1 = 1; j1 < m1j; j1++) {
+        i1 = 2*j1-d1;
+        x1[i1] = r[i3+1][i2  ][i1] + r[i3+1][i2+2][i1]
+               + r[i3  ][i2+1][i1] + r[i3+2][i2+1][i1];
+        y1[i1] = r[i3  ][i2  ][i1] + r[i3+2][i2  ][i1]
+               + r[i3  ][i2+2][i1] + r[i3+2][i2+2][i1];
+      }
 
-	
-	  {
-		  #pragma omp parallel for shared(r,x1,y1,x2,y2,d1,s,j2,j3,m1j) firstprivate(i1,i2,i3) default(none)
-		  for (int j1 = 1; j1 < m1j-1; j1++) {
-			i1 = 2*j1-d1;
-			y2 = r[i3  ][i2  ][i1+1] + r[i3+2][i2  ][i1+1]
-			   + r[i3  ][i2+2][i1+1] + r[i3+2][i2+2][i1+1];
-			x2 = r[i3+1][i2  ][i1+1] + r[i3+1][i2+2][i1+1]
-			   + r[i3  ][i2+1][i1+1] + r[i3+2][i2+1][i1+1];
-			s[j3][j2][j1] =
-					0.5 * r[i3+1][i2+1][i1+1]
-				  + 0.25 * (r[i3+1][i2+1][i1] + r[i3+1][i2+1][i1+2] + x2)
-				  + 0.125 * (x1[i1] + x1[i1+2] + y2)
-				  + 0.0625 * (y1[i1] + y1[i1+2]);
-		  }
-	  }
+      for (j1 = 1; j1 < m1j-1; j1++) {
+        i1 = 2*j1-d1;
+        y2 = r[i3  ][i2  ][i1+1] + r[i3+2][i2  ][i1+1]
+           + r[i3  ][i2+2][i1+1] + r[i3+2][i2+2][i1+1];
+        x2 = r[i3+1][i2  ][i1+1] + r[i3+1][i2+2][i1+1]
+           + r[i3  ][i2+1][i1+1] + r[i3+2][i2+1][i1+1];
+        s[j3][j2][j1] =
+                0.5 * r[i3+1][i2+1][i1+1]
+              + 0.25 * (r[i3+1][i2+1][i1] + r[i3+1][i2+1][i1+2] + x2)
+              + 0.125 * (x1[i1] + x1[i1+2] + y2)
+              + 0.0625 * (y1[i1] + y1[i1+2]);
+      }
     }
   }
   if (timeron) timer_stop(T_rprj3);
@@ -691,42 +662,32 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
 
   if (timeron) timer_start(T_interp);
   if (n1 != 3 && n2 != 3 && n3 != 3) {
-	  
-	for (i3 = 0; i3 < mm3-1; i3++) {
+    for (i3 = 0; i3 < mm3-1; i3++) {
       for (i2 = 0; i2 < mm2-1; i2++) {
-		  
-		#pragma omp parallel for shared(z,z1,z2,z3,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 0; i1 < mm1; i1++) {
           z1[i1] = z[i3][i2+1][i1] + z[i3][i2][i1];
           z2[i1] = z[i3+1][i2][i1] + z[i3][i2][i1];
           z3[i1] = z[i3+1][i2+1][i1] + z[i3+1][i2][i1] + z1[i1];
         }
 
-		#pragma omp parallel for shared(u,z,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 0; i1 < mm1-1; i1++) {
           u[2*i3][2*i2][2*i1] = u[2*i3][2*i2][2*i1]
                               + z[i3][i2][i1];
           u[2*i3][2*i2][2*i1+1] = u[2*i3][2*i2][2*i1+1]
                                 + 0.5 * (z[i3][i2][i1+1] + z[i3][i2][i1]);
         }
-        
-        #pragma omp parallel for shared(u,z1,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 0; i1 < mm1-1; i1++) {
           u[2*i3][2*i2+1][2*i1] = u[2*i3][2*i2+1][2*i1]
                                 + 0.5 * z1[i1];
           u[2*i3][2*i2+1][2*i1+1] = u[2*i3][2*i2+1][2*i1+1]
                                   + 0.25 * (z1[i1] + z1[i1+1]);
         }
-        
-         #pragma omp parallel for shared(u,z2,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 0; i1 < mm1-1; i1++) {
           u[2*i3+1][2*i2][2*i1] = u[2*i3+1][2*i2][2*i1]
                                   + 0.5 * z2[i1];
           u[2*i3+1][2*i2][2*i1+1] = u[2*i3+1][2*i2][2*i1+1]
                                   + 0.25 * (z2[i1] + z2[i1+1]);
         }
-        
-         #pragma omp parallel for shared(u,z3,mm1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 0; i1 < mm1-1; i1++) {
           u[2*i3+1][2*i2+1][2*i1] = u[2*i3+1][2*i2+1][2*i1]
                                   + 0.25 * z3[i1];
@@ -760,38 +721,25 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
       t3 = 0;
     }
 
-	 #pragma omp parallel for shared(z,z1,t1,u,mm1,mm2,mm3,i2,t2,d2,d3,d1,i1) lastprivate(i3) default(none)
     for (i3 = d3; i3 <= mm3-1; i3++) {
-		
-	  #pragma omp parallel for shared(z,z1,t1,u,mm1,mm2,d2,d3,d1,i1) firstprivate(i3) lastprivate(i2) default(none)
       for (i2 = d2; i2 <= mm2-1; i2++) {
-		  
-		#pragma omp parallel for shared(z,u,z1,mm1,d2,d3,d1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = d1; i1 <= mm1-1; i1++) {
           u[2*i3-d3-1][2*i2-d2-1][2*i1-d1-1] =
             u[2*i3-d3-1][2*i2-d2-1][2*i1-d1-1]
             + z[i3-1][i2-1][i1-1];
         }
-        
-        #pragma omp parallel for shared(z,u,z1,mm1,d2,d3,d1,t1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 1; i1 <= mm1-1; i1++) {
           u[2*i3-d3-1][2*i2-d2-1][2*i1-t1-1] =
             u[2*i3-d3-1][2*i2-d2-1][2*i1-t1-1]
             + 0.5 * (z[i3-1][i2-1][i1] + z[i3-1][i2-1][i1-1]);
         }
       }
-      
-      #pragma omp parallel for shared(z,u,mm1,mm2,t1,t2,d1,d3,i1) firstprivate(i3) lastprivate(i2) default(none)
       for (i2 = 1; i2 <= mm2-1; i2++) {
-		  
-		#pragma omp parallel for shared(z,u,mm1,t2,d1,d3) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = d1; i1 <= mm1-1; i1++) {
           u[2*i3-d3-1][2*i2-t2-1][2*i1-d1-1] =
             u[2*i3-d3-1][2*i2-t2-1][2*i1-d1-1]
             + 0.5 * (z[i3-1][i2][i1-1] + z[i3-1][i2-1][i1-1]);
         }
-        
-        #pragma omp parallel for shared(z,u,mm1,t2,t1,d3) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 1; i1 <= mm1-1; i1++) {
           u[2*i3-d3-1][2*i2-t2-1][2*i1-t1-1] =
             u[2*i3-d3-1][2*i2-t2-1][2*i1-t1-1]
@@ -801,20 +749,13 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
       }
     }
 
-    #pragma omp parallel for shared(z,u,d1,t3,t1,mm1,mm2,mm3,d2,t2, i1,i2) lastprivate(i3) default(none)
     for (i3 = 1; i3 <= mm3-1; i3++) {
-		
-	  #pragma omp parallel for shared(z,u,d1,t3,t1,mm1,mm2,t2, i1,d2) firstprivate(i3) lastprivate(i2) default(none)
       for (i2 = d2; i2 <= mm2-1; i2++) {
-		  
-		#pragma omp parallel for shared(z,u,d1,t3,mm1,d2) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = d1; i1 <= mm1-1; i1++) {
           u[2*i3-t3-1][2*i2-d2-1][2*i1-d1-1] =
             u[2*i3-t3-1][2*i2-d2-1][2*i1-d1-1]
             + 0.5 * (z[i3][i2-1][i1-1] + z[i3-1][i2-1][i1-1]);
         }
-        
-        #pragma omp parallel for shared(z,u,d1,t3,mm1,d2,t1) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 1; i1 <= mm1-1; i1++) {
           u[2*i3-t3-1][2*i2-d2-1][2*i1-t1-1] =
             u[2*i3-t3-1][2*i2-d2-1][2*i1-t1-1]
@@ -822,19 +763,13 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
                     + z[i3-1][i2-1][i1] + z[i3-1][i2-1][i1-1]);
         }
       }
-      
-	  #pragma omp parallel for shared(z,u,d1,t3,t1,mm1,mm2,t2, i1) firstprivate(i3) lastprivate(i2) default(none)
       for (i2 = 1; i2 <= mm2-1; i2++) {
-		  
-		#pragma omp parallel for shared(z,u,d1,t3,t1,mm1,t2) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = d1; i1 <= mm1-1; i1++) {
           u[2*i3-t3-1][2*i2-t2-1][2*i1-d1-1] =
             u[2*i3-t3-1][2*i2-t2-1][2*i1-d1-1]
             + 0.25 * (z[i3  ][i2][i1-1] + z[i3  ][i2-1][i1-1]
                     + z[i3-1][i2][i1-1] + z[i3-1][i2-1][i1-1]);
         }
-        
-        #pragma omp parallel for shared(z,u,d1,t3,mm1,t1,t2) firstprivate(i2,i3) default(none) lastprivate(i1)
         for (i1 = 1; i1 <= mm1-1; i1++) {
           u[2*i3-t3-1][2*i2-t2-1][2*i1-t1-1] =
             u[2*i3-t3-1][2*i2-t2-1][2*i1-t1-1]
@@ -885,11 +820,10 @@ static void norm2u3(void *or, int n1, int n2, int n3,
   max_rnmu = 0.0;
 
   double my_rnmu = 0.0;
-  #pragma omp parallel for collapse(3) shared(a, my_rnmu) firstprivate(n1, n2, n3, r) default(none) reduction(+:s)
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
       for (i1 = 1; i1 < n1-1; i1++) {
-        s = s + pow(r[i3][i2][i1], 2.0); //reduction
+        s = s + pow(r[i3][i2][i1], 2.0);
         a = fabs(r[i3][i2][i1]);
         my_rnmu = (a > my_rnmu) ? a : my_rnmu;
       }
@@ -930,29 +864,20 @@ static void comm3(void *ou, int n1, int n2, int n3, int kk)
 
   if (timeron) timer_start(T_comm3);
 
-  #pragma omp parallel for shared(i3, i2, i1, u) firstprivate(n3, n2, n1) default(none)
   for (i3 = 1; i3 < n3-1; i3++) {
-
-    #pragma omp task shared(u, i2, i3) firstprivate(n1, n2) default(none) 
-    {
-      #pragma omp parallel for shared(u, i2) firstprivate(n2, i3, n1)
-      for (i2 = 1; i2 < n2-1; i2++) {
-        u[i3][i2][   0] = u[i3][i2][n1-2];
-        u[i3][i2][n1-1] = u[i3][i2][   1];
-      }
+    for (i2 = 1; i2 < n2-1; i2++) {
+      u[i3][i2][   0] = u[i3][i2][n1-2];
+      u[i3][i2][n1-1] = u[i3][i2][   1];
     }
+//  }
 
-    #pragma omp task shared(u, i1, i3) firstprivate(n1, n2) default(none) 
-    {
-      #pragma omp parallel for shared(u, i1) firstprivate(n2, i3, n1)
-      for (i1 = 0; i1 < n1; i1++) {
-        u[i3][   0][i1] = u[i3][n2-2][i1];
-        u[i3][n2-1][i1] = u[i3][   1][i1];
-      }
+//  for (i3 = 1; i3 < n3-1; i3++) {
+    for (i1 = 0; i1 < n1; i1++) {
+      u[i3][   0][i1] = u[i3][n2-2][i1];
+      u[i3][n2-1][i1] = u[i3][   1][i1];
     }
   }
 
-  #pragma omp parallel for collapse(2) shared(i2, i1, u) firstprivate(n1, n2, n3) default(none)
   for (i2 = 0; i2 < n2; i2++) {
     for (i1 = 0; i1 < n1; i1++) {
       u[   0][i2][i1] = u[n3-2][i2][i1];
@@ -987,32 +912,20 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   double rdummy;
   int myid, num_threads;
 
-  #pragma omp parallel
-  #pragma omp single nowait
-  {
+  a1 = power(a, nx1);
+  a2 = power(a, nx1*ny1);
 
-    #pragma omp task shared(a1) firstprivate(a, nx1) default(none)
-    a1 = power(a, nx1);
+  zero3(z, n1, n2, n3);
 
-    #pragma omp task shared(a2) firstprivate(a, nx1,ny1) default(none)
-    a2 = power(a, nx1*ny1);
-  
-    #pragma omp task shared(z) firstprivate(n1, n2, n3) default(none)
-    zero3(z, n1, n2, n3);
-  
-    #pragma omp task shared(i, ai, d1, e1, e2, e3, x0, rdummy) firstprivate(nx1, ny1, ie1, is1, ie2, is2, ie3, is3, x) default(none) 
-    {
-      i = is1-2+nx1*(is2-2+ny1*(is3-2));
+  i = is1-2+nx1*(is2-2+ny1*(is3-2));
 
-      ai = power(a, i);
-      d1 = ie1 - is1 + 1;
-      e1 = ie1 - is1 + 2;
-      e2 = ie2 - is2 + 2;
-      e3 = ie3 - is3 + 2;
-      x0 = x;
-      rdummy = randlc(&x0, ai);
-    }
-  }
+  ai = power(a, i);
+  d1 = ie1 - is1 + 1;
+  e1 = ie1 - is1 + 2;
+  e2 = ie2 - is2 + 2;
+  e3 = ie3 - is3 + 2;
+  x0 = x;
+  rdummy = randlc(&x0, ai);
 
   //---------------------------------------------------------------------
   // save the starting seeds for the following loop
@@ -1027,7 +940,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   //---------------------------------------------------------------------
   for (i3 = 1; i3 < e3; i3++) {
     x1 = starts[i3];
-    for (i2 = 1; i2 < e2; i2++) { 
+    for (i2 = 1; i2 < e2; i2++) {
       xx = x1;
       vranlc(d1, &xx, a, &(z[i3][i2][1]));
       rdummy = randlc(&x1, a1);
@@ -1038,7 +951,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   // comm3(z,n1,n2,n3);
   // showall(z,n1,n2,n3);
   //---------------------------------------------------------------------
-  #pragma omp parallel for shared(ten, j1, j2, j3, i) firstprivate(mm) default(none)
+
   for (i = 0; i < mm; i++) {
     ten[i][1] = 0.0;
     j1[i][1] = 0;
@@ -1050,7 +963,6 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
     j3[i][0] = 0;
   }
 
-  //TODO
   for (i3 = 1; i3 < n3-1; i3++) {
     double (*zi3)[n1] = z[i3];
     for (i2 = 1; i2 < n2-1; i2++) {
@@ -1077,15 +989,11 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   i0 = mm - 1;
   myid = 0;
   num_threads = 1;
-
-  //TODO:
-  //#pragma omp parallel for shared(i, best1, best0, i2, jg, i0, i1) firstprivate(mm, ten, j1, j2, j3, myid, num_threads) default(none)
   for (i = mm - 1; i >= 0; i--) {
 
     best1 = 0.0;
     best0 = 1.0;
-    //TODO:
-    //#pragma omp parallel for shared(jg, i2, i) firstprivate(best1, best0, ten, j1, j2, j3, i1, i0, myid, num_threads) default(none)
+
     for (i2 = 1; i2 <= num_threads; i2++) {
       if (ten[i1][1] > best1) {
         best1 = ten[i1][1];
@@ -1162,7 +1070,6 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   }
   */
 
-  #pragma omp parallel for collapse(3) shared(z, i3, i2, i1) firstprivate(n1, n2, n3) default(none)
   for (i3 = 0; i3 < n3; i3++) {
     for (i2 = 0; i2 < n2; i2++) {
       for (i1 = 0; i1 < n1; i1++) {
@@ -1170,17 +1077,12 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
       }
     }
   }
-
-  #pragma omp paralle for shared(z, i) firstprivate(mm, mm0, jg) default(none) 
   for (i = mm-1; i >= mm0; i--) {
     z[jg[3][i][0]][jg[2][i][0]][jg[1][i][0]] = -1.0;
   }
-
-  #pragma omp paralle for shared(z, i) firstprivate(mm, mm1, jg) default(none) 
   for (i = mm-1; i >= mm1; i--) {
     z[jg[3][i][1]][jg[2][i][1]][jg[1][i][1]] = +1.0;
   }
-
   comm3(z, n1, n2, n3, k);
 
   //---------------------------------------------------------------------
@@ -1301,10 +1203,11 @@ static void zero3(void *oz, int n1, int n2, int n3)
 {
   double (*z)[n2][n1] = (double (*)[n2][n1])oz;
 
-  #pragma omp parallel for collapse(3) shared(z) firstprivate(n1, n2, n3) default(none) //No Real Impact
-  for (int i3 = 0; i3 < n3; i3++) {
-    for (int i2 = 0; i2 < n2; i2++) {
-      for (int i1 = 0; i1 < n1; i1++) {
+  int i1, i2, i3;
+
+  for (i3 = 0; i3 < n3; i3++) {
+    for (i2 = 0; i2 < n2; i2++) {
+      for (i1 = 0; i1 < n1; i1++) {
         z[i3][i2][i1] = 0.0;
       }
     }
