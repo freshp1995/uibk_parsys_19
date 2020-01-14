@@ -17,9 +17,10 @@
 # Join the error stream to the output stream.
 #$ -j yes
 
+#$ -l exclusive=true
+
 #$ -pe openmp 8
 
-export OMP_SCHEDULE=static
 for ((j=1; j < 9; j+=1))
 do
     #tell OpenMP how many threads to start

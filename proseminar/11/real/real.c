@@ -228,16 +228,20 @@ int main()
   old2 = rnm2;
   oldu = rnmu;
 
+  #pragma omp parallel for ordered shared(u, v, r, a, k) firstprivate(n1, n2, n3)
   for (it = 1; it <= nit; it++) {
-    if ((it == 1) || (it == nit) || ((it % 5) == 0)) {
-      printf("  iter %3d\n", it);
+    #pragma omp ordered
+    {
+        if ((it == 1) || (it == nit) || ((it % 5) == 0)) {
+        printf("  iter %3d\n", it);
+      }
+      if (timeron) timer_start(T_mg3P);
+      mg3P(u, v, r, a, c, n1, n2, n3);
+      if (timeron) timer_stop(T_mg3P);
+      if (timeron) timer_start(T_resid2);
+      resid(u, v, r, n1, n2, n3, a, k);
+      if (timeron) timer_stop(T_resid2);
     }
-    if (timeron) timer_start(T_mg3P);
-    mg3P(u, v, r, a, c, n1, n2, n3);
-    if (timeron) timer_stop(T_mg3P);
-    if (timeron) timer_start(T_resid2);
-    resid(u, v, r, n1, n2, n3, a, k);
-    if (timeron) timer_stop(T_resid2);
   }
 
   norm2u3(r, n1, n2, n3, &rnm2, &rnmu, nx[lt], ny[lt], nz[lt]);
@@ -332,45 +336,62 @@ static void setup(int *n1, int *n2, int *n3)
   int ax, mi[MAXLEVEL+1][3];
   int ng[MAXLEVEL+1][3];
 
+
   ng[lt][0] = nx[lt];
   ng[lt][1] = ny[lt];
   ng[lt][2] = nz[lt];
   for (k = lt-1; k >= 1; k--) {
+    #pragma omp parallel for
     for (ax = 0; ax < 3; ax++) {
       ng[k][ax] = ng[k+1][ax]/2;
     }
   }
+
+  #pragma omp parallel for shared(nx, ny, nz, ng, k, lt) default(none)
   for (k = lt; k >= 1; k--) {
     nx[k] = ng[k][0];
     ny[k] = ng[k][1];
     nz[k] = ng[k][2];
   }
 
-  for (k = lt; k >= 1; k--) {
-    for (ax = 0; ax < 3; ax++) {
-      mi[k][ax] = 2 + ng[k][ax];
+  #pragma omp task
+  {
+    #pragma omp parallel for
+    for (k = lt; k >= 1; k--) {
+      #pragma omp parallel for shared(ax, k, mi, ng) default(none)
+      for (ax = 0; ax < 3; ax++) {
+        mi[k][ax] = 2 + ng[k][ax];
+      }
+
+      m1[k] = mi[k][0];
+      m2[k] = mi[k][1];
+      m3[k] = mi[k][2];
     }
-
-    m1[k] = mi[k][0];
-    m2[k] = mi[k][1];
-    m3[k] = mi[k][2];
   }
 
-  k = lt;
-  is1 = 2 + ng[k][0] - ng[lt][0];
-  ie1 = 1 + ng[k][0];
-  *n1 = 3 + ie1 - is1;
-  is2 = 2 + ng[k][1] - ng[lt][1];
-  ie2 = 1 + ng[k][1];
-  *n2 = 3 + ie2 - is2;
-  is3 = 2 + ng[k][2] - ng[lt][2];
-  ie3 = 1 + ng[k][2];
-  *n3 = 3 + ie3 - is3;
-
-  ir[lt] = 0;
-  for (j = lt-1; j >= 1; j--) {
-    ir[j] = ir[j+1]+ONE*m1[j+1]*m2[j+1]*m3[j+1];
+  #pragma omp task
+  {
+    k = lt;
+    is1 = 2 + ng[k][0] - ng[lt][0];
+    ie1 = 1 + ng[k][0];
+    *n1 = 3 + ie1 - is1;
+    is2 = 2 + ng[k][1] - ng[lt][1];
+    ie2 = 1 + ng[k][1];
+    *n2 = 3 + ie2 - is2;
+    is3 = 2 + ng[k][2] - ng[lt][2];
+    ie3 = 1 + ng[k][2];
+    *n3 = 3 + ie3 - is3;
   }
+
+  #pragma omp task
+  {
+    ir[lt] = 0;
+    
+    for (j = lt-1; j >= 1; j--) {
+      ir[j] = ir[j+1]+ONE*m1[j+1]*m2[j+1]*m3[j+1];
+    }
+  }
+  #pragma omp taskwait
 
   if (debug_vec[1] >= 1) {
     printf(" in setup, \n");
@@ -885,7 +906,7 @@ static void norm2u3(void *or, int n1, int n2, int n3,
   max_rnmu = 0.0;
 
   double my_rnmu = 0.0;
-  #pragma omp parallel for collapse(3) shared(a, my_rnmu) firstprivate(n1, n2, n3, r) default(none) reduction(+:s)
+  #pragma omp parallel for collapse(3) shared(a, my_rnmu, n1, n2, n3, r) default(none) reduction(+:s)
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
       for (i1 = 1; i1 < n1-1; i1++) {
