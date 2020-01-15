@@ -1,5 +1,5 @@
 CC=gcc
-CC_FLAGS=-O3 -g3 -lm -fopenmp -pg
+CC_FLAGS=-O3 -g3 -lm -fopenmp
 
 .PHONEY: all
 all: real
