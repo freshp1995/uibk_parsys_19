@@ -1,5 +1,6 @@
 use Random;
 use Time;
+use LinearAlgebra;
 
 /*
   Here we set up several config consts that represent, in order:
@@ -7,7 +8,7 @@ use Time;
     - ``K``, the second dimension for arrays ``X`` and ``B``
     - ``seed``, a seed for random number generation
 */
-config const N = 1000;//2552;
+config const N = 200;//2552;
 config const seed = 100;
 config const seed2 = 105;
 
@@ -25,7 +26,7 @@ proc PMmultiply(N: int, K: int): real {
   forall i in 1..N do {
     forall j in 1..K do {
       forall k in 1..N do {
-         B[i,j] += A[i,k] * X[k,j];
+         B[i,j] += A[i,k] * X[j,k];
       }
     }
   }
