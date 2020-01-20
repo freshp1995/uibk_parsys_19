@@ -17,7 +17,7 @@
 # Join the error stream to the output stream.
 #$ -j yes
 
-#$ -l exclusive=true
+#$ -pe openmpi-fillup 8
 
 ./matrix_multi2 -nl 1
 ./matrix_multi2 -nl 2
