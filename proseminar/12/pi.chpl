@@ -1,8 +1,9 @@
+//based on tutorial from chapel
+
 //pi program
 use Random;
 
-//var sample: int = 1000000000;
-var sample: int = 100000;
+var sample: int = 1000000000;
 var count: int = 0;
 
 var seed = 13;
