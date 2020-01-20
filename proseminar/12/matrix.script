@@ -19,6 +19,8 @@
 
 #$ -l exclusive=true
 
+#$ -pe openmpi-fillup 8
+
 ./matrix_multi2 -nl 1
 ./matrix_multi2 -nl 2
 ./matrix_multi2 -nl 4
