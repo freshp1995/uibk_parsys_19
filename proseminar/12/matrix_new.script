@@ -22,13 +22,23 @@
 module load gcc
 module load openmpi/3.1.1
 
-source ./../chapel/chapel-1.20.0/util/quickstart/setchplenv.bash
+source /scratch/cb761025/chapel-1.20.0/util/quickstart/setchplenv.bash
 export CHPL_COMM=gasnet
 export CHPL_LAUNCHER=gasnetrun_mpi
 export CHPL_COMM_SUBSTRATE=mpi
 
-./matrix_multi2 -nl 1
-./matrix_multi2 -nl 2
-./matrix_multi2 -nl 4
-./matrix_multi2 -nl 8
+chapel pi.chpl
+
+./pi_real -nl 1
+./pi_real -nl 2
+./pi_real -nl 4
+./pi_real -nl 8
+
+
+chapel --lopenblas matrix_multi2.chpl
+
+./matrix_multi2_real -nl 1
+./matrix_multi2_real -nl 2
+./matrix_multi2_real -nl 4
+./matrix_multi2_real -nl 8
 
