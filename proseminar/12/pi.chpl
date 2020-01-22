@@ -8,6 +8,9 @@ var count: int = 0;
 
 var seed = 13;
 
+
+writeln("dataParTasksPerLocale = ", dataParTasksPerLocale);
+
 var randStream = new owned NPBRandomStream(real, seed, parSafe=false);
 
 var sampleArray = {1..sample};
